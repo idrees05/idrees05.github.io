@@ -20,6 +20,18 @@ body, html {
     background: linear-gradient(to right, rgb(68, 0, 255), rgb(0, 191, 255));
 }
 
+.subheading {
+    position: absolute;
+    top: 50%;  /* Adjust as needed */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5em;  /* Adjust as needed */
+    color: white;
+    text-align: center;
+    font-family: 'Nunito Sans', sans-serif;  /* Optional: change font */
+}
+
+
 .name {
     position: absolute;
     top: 45%;
@@ -29,6 +41,7 @@ body, html {
     color: white;
     text-align: center;
     font-family: 'Pixelify Sans', sans-serif;
+    margin-bottom: 100px;
 }
 
 .icons {
@@ -42,18 +55,21 @@ body, html {
 .icons a {
     margin: 0 10px;
     display: inline-block;
-    border-radius: 70%;  /* Circular border */
-    transition: background-color 0.3s;  /* Smooth background color transition */
+    border: 2px solid white; /* White border around the icon */
+    border-radius: 50%; /* Makes the border circular */
+    padding: 5px; /* Space between the icon and the border */
+    transition: background-color 0.3s, filter 0.3s; /* Adds transition for background and icon color */
 }
 
 .icons a:hover {
-    background-color: rgb(13, 186, 255);  /* Change background color to white on hover */
+    background-color: white; /* White background on hover */
+    filter: invert(1) hue-rotate(200deg); /* Changes icon color to dark blue on hover */
 }
 
 .icons a img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;  /* Circular border for img too, if icons are circular */
+    width: 30px;
+    height: 30px;
+    display: block; /* Ensures the icon takes up the full space within the border */
 }
 
 /* Section 2*/
@@ -149,3 +165,81 @@ img {
 }
 
 
+/* Responsive Styles */
+@media (max-width: 1000px) {
+    .name {
+        font-size: 4em;
+    }
+    .subheading {
+        font-size: 1.2em;
+    }
+    .icons a img {
+        width: 40px;
+        height: 40px;
+    }
+    .profile-image {
+        width: 140px;
+        height: 140px;
+    }
+    .story h1 {
+        font-size: 1.5em;
+    }
+    .container {
+        width: 70%;
+    }
+    img {
+        width: 250px;
+    }
+}
+
+@media (max-width: 800px) {
+    .name {
+        font-size: 3em;
+    }
+    .subheading {
+        font-size: 1em;
+    }
+    .icons a img {
+        width: 30px;
+        height: 30px;
+    }
+    .profile-image {
+        width: 120px;
+        height: 120px;
+    }
+    .story h1 {
+        font-size: 1.2em;
+    }
+    .container {
+        width: 80%;
+    }
+    img {
+        width: 200px;
+    }
+}
+
+@media (max-width: 600px) {
+    .name {
+        font-size: 2em;
+    }
+    .subheading {
+        font-size: 0.8em;
+    }
+    .icons a img {
+        width: 25px;
+        height: 25px;
+    }
+    .profile-image {
+        width: 100px;
+        height: 100px;
+    }
+    .story h1 {
+        font-size: 1em;
+    }
+    .container {
+        width: 90%;
+    }
+    img {
+        width: 150px;
+    }
+}
