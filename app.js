@@ -18,7 +18,7 @@ particlesJS('particles-js',
           "color": "#ffffff"
         },
         "polygon": {
-          "nb_sides": 6
+          "nb_sides": 5
         },
         "image": {
           "src": "img/github.svg",
@@ -51,7 +51,7 @@ particlesJS('particles-js',
         "distance": 300,
         "color": "#ffffff",
         "opacity": 0.2,
-        "width": 2
+        "width": 1.5
       },
       "move": {
         "enable": true,
@@ -110,3 +110,4 @@ particlesJS('particles-js',
     "retina_detect": true
   }
 );
+

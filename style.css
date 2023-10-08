@@ -244,3 +244,26 @@ img {
         width: 150px;
     }
 }
+
+
+
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 12px;  
+    background-color: rgba(0, 0, 0, 0);  /* Fully transparent background */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(68, 155, 255, 0.5);  /* Semi-transparent thumb */
+    border-radius: 10px;
+    border: 2px solid rgba(0 ,0 , 0 , 0);  /* Semi-transparent border */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(85, 85, 85, 0.5);  /* Semi-transparent thumb on hover */
+}
+
+::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0);  /* Fully transparent track */
+}
