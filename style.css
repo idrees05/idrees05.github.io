@@ -6,11 +6,25 @@
     overflow: hidden; 
 } */
 
+
 body, html {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
     font-family: 'Audiowide', sans-serif;
+    height: 100%; /* Ensure body takes up full height */
+    display: flex; /* Make body a flex container */
+    flex-direction: column; /* Stack children vertically */
+}
+
+#flex-container {
+    flex: 1; /* This will make sure your main content grows to take available space */
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+}
+
+#main-content {
+    flex-grow: 1; /* This will make sure your main content grows to take available space */
 }
 
 #particles-js {
@@ -155,15 +169,13 @@ img {
 /* Footer */
 
 #footer {
-    background: linear-gradient(to right, rgb(68, 0, 255), rgb(0, 191, 255)); /* Same background as your first section */
-    color: white; /* White text for visibility on dark background */
+    background: linear-gradient(to right, rgb(68, 0, 255), rgb(0, 191, 255));
+    color: white;
     text-align: center;
-    padding: 20px; /* Adjust padding as needed */
-    
-    bottom: 0; /* Position at the bottom of the page */
+    padding: 20px;
     width: 100%;
-    left: 0; /* Align to the left edge of the page */
 }
+
 
 
 /* Responsive Styles */
