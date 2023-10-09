@@ -56,9 +56,9 @@ Customizing the scrollbar to align with the overall theme of the portfolio while
 - HTML
 - CSS
 - JavaScript
-- Particles.js
 
 ## Future Improvements
 
 - Make the portfolio more responsive to different screen sizes.
 - Add a blog section to share insights and experiences.
+- Complete and add new projects
