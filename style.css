@@ -263,19 +263,19 @@ img {
 /* Scrollbar Styles */
 ::-webkit-scrollbar {
     width: 5px;  
-    background-color: rgb(0, 191, 255);  /* Fully transparent background */
+    background-color: rgb(0, 191, 255); 
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: rgb(69, 82, 97);  /* Semi-transparent thumb */
+    background-color: rgb(69, 82, 97);  
     border-radius: 10px;
-    border: 2px solid rgba(0 ,0 , 0 , 0);  /* Semi-transparent border */
+    border: 2px solid rgba(0 ,0 , 0 , 0);  
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(173, 173, 173);  /* Semi-transparent thumb on hover */
+    background-color: rgb(173, 173, 173);  
 }
 
 ::-webkit-scrollbar-track {
-    background-color: rgba(0, 0, 0, 0);  /* Fully transparent track */
+    background-color: rgba(0, 0, 0, 0);  
 }
