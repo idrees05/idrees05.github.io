@@ -62,3 +62,9 @@ Customizing the scrollbar to align with the overall theme of the portfolio while
 - Make the portfolio more responsive to different screen sizes.
 - Add a blog section to share insights and experiences.
 - Complete and add new projects
+
+## Updates made
+
+- Added an email form using and external party "Getform"
+- Styalised it to match the page
+- Added a button in the first section to take you to the form
