@@ -68,3 +68,4 @@ Customizing the scrollbar to align with the overall theme of the portfolio while
 - Added an email form using and external party "Getform"
 - Styalised it to match the page
 - Added a button in the first section to take you to the form
+- Found a better hover effect for the icons and buttons 
