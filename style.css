@@ -176,6 +176,48 @@ img {
     width: 100%;
 }
 
+h2 {
+    color: white;
+    font-family: 'Audiowide', sans-serif;
+    margin-bottom: 20px;
+}
+
+form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+form input, form textarea, form button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);  /* Thin border with light opacity */
+    border-radius: 4px;  /* Slight rounding of corners */
+    background: rgba(255, 255, 255, 0.1);  /* Slightly transparent white */
+    color: white;
+    font-family: 'Nunito Sans', sans-serif;
+    outline: none;  /* Remove the default outline */
+    transition: border-color 0.3s, box-shadow 0.3s;  /* Smooth transition for border and shadow */
+}
+
+form input:focus, form textarea:focus {
+    border-color: rgba(255, 255, 255, 0.7);  /* Border becomes more opaque when field is focused */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);  /* Slight glow effect */
+}
+
+form button {
+    width: auto;
+    cursor: pointer;
+    background: #007bff4d;  /* Blue background */
+    border: none;
+    font-weight: bold;
+    padding: 8px 30px;/* Reduced padding */
+    font-size: 0.9em;   /* Reduced font size */
+}
+
+form button:hover {
+    background: #3f82caab;  /* Darker blue on hover */
+}
 
 
 /* Responsive Styles */
