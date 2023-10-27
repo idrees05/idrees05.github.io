@@ -231,15 +231,16 @@ form input:focus, form textarea:focus {
 form button {
     width: auto;
     cursor: pointer;
-    background: #007bff4d;  /* Blue background */
-    border: none;
+    background: #68686800;  /* Blue background */
+    border: 1px solid rgba(255, 255, 255, 0.3);
     font-weight: bold;
     padding: 8px 30px;/* Reduced padding */
     font-size: 0.9em;   /* Reduced font size */
 }
 
 form button:hover {
-    background: #3f82caab;  /* Darker blue on hover */
+    border-color: rgba(255, 255, 255, 0.7);  /* Border becomes more opaque when field is focused */
+    box-shadow: 0 0 10px rgba(243, 242, 242, 0.733);  /* Slight glow effect */
 }
 
 
