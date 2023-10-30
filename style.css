@@ -143,11 +143,35 @@ body, html {
 
 /* prject section */
 
+/* Styling for the project button */
+.project-button {
+    display: block; /* Button occupies its own line */
+    margin-top: 20px; /* Space above the button */
+    padding: 10px 20px;
+    color: rgb(7, 6, 6);
+    border-radius: 5px;
+    font-size: 0.7em;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px linear-gradient(to right, rgb(0, 63, 136), rgb(98, 89, 177));  
+    background: rgba(255, 255, 255, 0);  /* Slightly transparent white */
+    font-family: 'Audiowide', sans-serif;
+    outline: none;  /* Remove the default outline */
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.project-button:hover {
+    border-color: linear-gradient(to right, rgb(0, 63, 136), rgb(98, 89, 177));  
+    box-shadow: 0 0 10px rgba(22, 75, 247, 0.425);  
+}
+
+
 /* Subheadings */
 
 .text h2 {
     text-align:start;
     margin-bottom: 10px;  /* Adjust as needed for spacing below the heading */
+    color: black;
 }
 
 /* paragraphs */
@@ -187,6 +211,7 @@ img {
     border-radius: 10px;  /* Optional: for rounded corners */
 }
 
+/* Check button */
 
 
 /* Footer */
@@ -345,3 +370,5 @@ form button:hover {
 ::-webkit-scrollbar-track {
     background-color: rgba(0, 0, 0, 0);  
 }
+
+
