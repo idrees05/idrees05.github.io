@@ -87,4 +87,21 @@ $(document).ready(function () {
         }
       }
     });
+
+    $('#hireMeLink').click(function(event) {
+      event.preventDefault(); // Prevent the default anchor behavior
+  
+      const section = document.getElementById('contact'); // Using 'contact' as the section id
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' }); // Smooth scroll to the section
+  
+      // Start the download after a slight delay to allow the scroll to start
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = 'ImagesandDocs/Mohammed Idrees Rahman CV.docx'; // Replace with the actual path to your CV
+        link.download = 'Mohammed Idrees Rahman CV.docx'; // Replace with the desired download filename
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, 500); // Adjust the delay as needed
+    });
   });
