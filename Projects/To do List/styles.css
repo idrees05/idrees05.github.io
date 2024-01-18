@@ -1,0 +1,100 @@
+
+body {
+    font-family: 'Audiowide', sans-serif;
+    background: linear-gradient(to right, rgb(0, 63, 136), rgb(98, 89, 177));
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;    
+}
+
+.todo-app {
+    max-width: 400px;
+    width: 100%;
+    padding: 20px 30px;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);  /* Thin border with light opacity */
+    background: rgba(255, 255, 255, 0.1);  /* Slightly transparent white */
+    color: white;
+    font-family: 'Nunito Sans', sans-serif;
+    outline: none;  /* Remove the default outline */
+    transition: border-color 0.3s, box-shadow 0.3s;  /* Smooth transition for border and shadow */
+}
+
+h1 {
+    text-align: center;
+    color: #daecff;
+    margin-bottom: 20px;
+    font-family: 'Audiowide',sans-serif;
+}
+
+#task-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);  /* Thin border with light opacity */
+    background: rgba(255, 255, 255, 0.1);  /* Slightly transparent white */
+    color: white;
+    font-family: 'Nunito Sans', sans-serif;
+    outline: none;  /* Remove the default outline */
+    transition: border-color 0.3s, box-shadow 0.3s;  /* Smooth transition for border and shadow */
+}
+
+#task-input:focus {
+    border-color: rgba(255, 255, 255, 0.7);  /* Border becomes more opaque when field is focused */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);  /* Slight glow effect */
+}
+
+
+
+#add-task {
+    width: 100%;
+    padding: 10px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: "Audiowide", sans-serif;
+    background: #68686800;  
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#add-task:hover {
+    border-color: rgba(255, 255, 255, 0.7);  
+    box-shadow: 0 0 10px rgba(243, 242, 242, 0.733);  /* Slight glow effect */
+}
+
+#task-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#task-list li {
+    margin: 5px 0;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);  /* Thin border with light opacity */
+    background: rgba(255, 255, 255, 0.1);  /* Slightly transparent white */
+    color: white;
+    font-family: 'Nunito Sans', sans-serif;
+    outline: none;  /* Remove the default outline */
+    transition: border-color 0.3s, box-shadow 0.3s;  /* Smooth transition for border and shadow */
+}
+
+#task-list li:hover {
+    border-color: rgba(255, 255, 255, 0.7);  /* Border becomes more opaque when field is focused */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);  /* Slight glow effect */
+}
+
+.delete-btn {
+    cursor: pointer;
+    color: rgb(248, 243, 243);
+    font-weight: bold;
+}
