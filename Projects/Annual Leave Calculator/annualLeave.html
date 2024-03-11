@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Annual Leave and Bank Holiday Calculator</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <h2>Annual Leave and Bank Holiday Calculator</h2>
+    
+    <div>
+        <h3>Period 1</h3>
+        <label for="start-date-1">Start Of Annual Leave:</label>
+        <input type="date" id="start-date-1" name="start-date-1"><br>
+        <label for="end-date-1">1 Day before new Contract:</label>
+        <input type="date" id="end-date-1" name="end-date-1"><br>
+        <label for="hours-week-1">Hours per Week:</label>
+        <input type="number" id="hours-week-1" name="hours-week-1"><br>
+    </div>
+    
+    <div>
+        <h3>Period 2</h3>
+        <label for="start-date-2">Start Of New Contract:</label>
+        <input type="date" id="start-date-2" name="start-date-2"><br>
+        <label for="end-date-2">Annual Leave end Date:</label>
+        <input type="date" id="end-date-2" name="end-date-2"><br>
+        <label for="hours-week-2">Hours per Week:</label>
+        <input type="number" id="hours-week-2" name="hours-week-2"><br>
+    </div>
+
+    <div>
+        <label for="full-time-leave">Full-Time Annual Leave Entitlement:</label>
+        <select id="full-time-leave" name="full-time-leave">
+            <option value="202.5">202.5 hours</option>
+            <option value="217.5">217.5 hours</option>
+            <option value="247.5">247.5 hours</option>
+        </select>
+    </div>
+    
+    <button id="calculate">Calculate Leave</button>
+    
+    <div id="result"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
