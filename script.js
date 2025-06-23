@@ -40,11 +40,7 @@ $(document).ready(function () {
   
     var typed = new Typed(".typing", {
       strings: [
-        "Fullstack Developer",
-        "Software Developer",
-        "Python Developer",
-        "Junior DevOps",
-        "Sofware Developer Apprentice"
+        "AI Automation Specialist",
       ],
       typeSpeed: 100,
       backSpeed: 60,
@@ -53,11 +49,7 @@ $(document).ready(function () {
   
     var typed = new Typed(".typing-2", {
       strings: [
-        "Fullstack Developer",
-        "Software Developer",
-        "Python Developer",
-        "Junior DevOps",
-        "Sofware Developer Apprentice"
+        "AI Automation Specialist",
       ],
       typeSpeed: 100,
       backSpeed: 60,
