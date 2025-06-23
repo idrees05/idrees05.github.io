@@ -93,8 +93,8 @@ $(document).ready(function () {
       if (!cvDownloaded) {
         setTimeout(() => {
           const link = document.createElement('a');
-          link.href = 'ImagesandDocs/Mohammed Idrees Rahman CV.docx'; // The path to the CV file
-          link.download = 'Mohammed Idrees Rahman CV.docx'; // Suggested filename for download
+          link.href = 'ImagesandDocs/Idrees Rahman General CV 2025.docx'; // The path to the CV file
+          link.download = 'Idrees Rahman CV.docx'; // Suggested filename for download
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
