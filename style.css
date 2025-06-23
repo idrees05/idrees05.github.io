@@ -481,6 +481,29 @@
     background: #1e3551;
   }
   
+.skills-content .right .powerautomate::before {
+  width: 0%;
+}
+
+.skills-content .right .python::before {
+  width: 0%;
+}
+
+.skills-content .right .js::before {
+  width: 0%;
+}
+
+.skills-content .right .html::before {
+  width: 0%;
+}
+
+.skills-content .right .excel::before {
+  width: 0%;
+}
+
+.skills-content .right .cSharp::before {
+  width: 0%;
+}
 
   
   /*  Projects  */
