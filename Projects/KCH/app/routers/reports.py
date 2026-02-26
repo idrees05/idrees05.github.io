@@ -4,16 +4,15 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from auth import require_session
 from database import get_db
 from models import TestResult, TestRun, TestScript
+from shared import templates
 
 router = APIRouter(prefix="/reports")
-templates = Jinja2Templates(directory="templates")
 
 
 @router.get("", response_class=HTMLResponse)

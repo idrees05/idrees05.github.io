@@ -144,37 +144,6 @@
         </div>
       </div>
 
-      <!-- Evidence upload -->
-      <div class="field-group">
-        <label class="field-label">Evidence (optional)</label>
-        <div id="evidence-list-{{ script.script_id }}">
-          {% include "partials/evidence_list.html" %}
-        </div>
-        <div class="evidence-upload-row">
-          <form
-            hx-post="/run/{{ run.run_id }}/script/{{ script.script_id }}/evidence"
-            hx-target="#evidence-list-{{ script.script_id }}"
-            hx-swap="innerHTML"
-            hx-encoding="multipart/form-data"
-            class="evidence-upload-form"
-          >
-            <input type="file" name="file" class="file-input"
-              accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip">
-            <button type="submit" class="btn btn-sm">Upload file</button>
-          </form>
-          <form
-            hx-post="/run/{{ run.run_id }}/script/{{ script.script_id }}/evidence"
-            hx-target="#evidence-list-{{ script.script_id }}"
-            hx-swap="innerHTML"
-            class="evidence-url-form"
-          >
-            <input type="url" name="evidence_url" class="field-input field-input-inline"
-              placeholder="Or paste a URL (SharePoint, screenshot link…)">
-            <button type="submit" class="btn btn-sm">Add URL</button>
-          </form>
-        </div>
-      </div>
-
       <!-- Retest toggle -->
       <div class="field-group">
         <label class="checkbox-label">
@@ -195,21 +164,47 @@
       </div>
 
       <div class="card-actions">
-        <button type="submit" class="btn btn-secondary" name="_action" value="save">
+        <button type="submit" class="btn btn-secondary" name="action" value="save">
           Save
         </button>
         {% if next_script_id %}
-        <button type="submit" class="btn btn-primary" name="_action" value="save_next"
-          hx-post="/run/{{ run.run_id }}/script/{{ script.script_id }}/result"
-          hx-target="#script-card-area"
-          hx-swap="innerHTML"
-          hx-on::after-request="htmx.ajax('GET', '/run/{{ run.run_id }}/script/{{ next_script_id }}', '#script-card-area')"
-        >
+        <button type="submit" class="btn btn-primary" name="action" value="save_next">
           Save &amp; Next &rarr;
         </button>
         {% endif %}
       </div>
     </form>
+
+    <!-- Evidence upload (separate — must not be nested inside the result form) -->
+    <div class="field-group">
+      <label class="field-label">Evidence (optional)</label>
+      <div id="evidence-list-{{ script.script_id }}">
+        {% include "partials/evidence_list.html" %}
+      </div>
+      <div class="evidence-upload-row">
+        <form
+          hx-post="/run/{{ run.run_id }}/script/{{ script.script_id }}/evidence"
+          hx-target="#evidence-list-{{ script.script_id }}"
+          hx-swap="innerHTML"
+          hx-encoding="multipart/form-data"
+          class="evidence-upload-form"
+        >
+          <input type="file" name="file" class="file-input"
+            accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip">
+          <button type="submit" class="btn btn-sm">Upload file</button>
+        </form>
+        <form
+          hx-post="/run/{{ run.run_id }}/script/{{ script.script_id }}/evidence"
+          hx-target="#evidence-list-{{ script.script_id }}"
+          hx-swap="innerHTML"
+          class="evidence-url-form"
+        >
+          <input type="url" name="evidence_url" class="field-input field-input-inline"
+            placeholder="Or paste a URL (SharePoint, screenshot link…)">
+          <button type="submit" class="btn btn-sm">Add URL</button>
+        </form>
+      </div>
+    </div>
     {% endif %}
   </div>
 </div>
@@ -226,7 +221,8 @@
   const banner = document.getElementById('save-banner');
   if (banner) setTimeout(() => banner.remove(), 3000);
 
-  // Update sidebar badge for this script
+  // Update sidebar badge and active state for this script
   updateSidebarItem('{{ script.script_id }}', '{{ result.outcome or '' if result else '' }}');
+  setActive('{{ script.script_id }}');
 </script>
 {% endif %}

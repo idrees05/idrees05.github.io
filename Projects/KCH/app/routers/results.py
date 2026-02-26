@@ -5,7 +5,6 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
@@ -13,9 +12,9 @@ from auth import require_session
 from database import get_db
 from models import Evidence, TestResult, TestRun, TestScript
 from schemas import SaveResultRequest
+from shared import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "./uploads"))
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
@@ -93,6 +92,7 @@ async def save_result(
     expected_instead: str = Form(None),
     retest_needed: str = Form("off"),
     comments: str = Form(None),
+    action: str = Form(None),
     session: dict = Depends(require_session),
     db: Session = Depends(get_db),
 ):
@@ -121,6 +121,15 @@ async def save_result(
         result.comments = validated.comments
         result.updated_at = datetime.utcnow()
         db.commit()
+
+    # If Save & Next, return the next untested script's card directly
+    if action == "save_next":
+        current_ctx = _build_card_context(db, run_id, script_id)
+        next_id = current_ctx.get("next_script_id")
+        if next_id:
+            ctx = _build_card_context(db, run_id, next_id)
+            ctx["request"] = request
+            return templates.TemplateResponse("partials/script_card.html", ctx)
 
     # Return updated sidebar snippet + card
     ctx = _build_card_context(db, run_id, script_id)

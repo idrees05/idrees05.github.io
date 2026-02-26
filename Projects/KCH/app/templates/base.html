@@ -18,7 +18,9 @@
       <nav class="header-nav">
         {% if request.cookies.get('session') %}
           <a href="/reports">Reports</a>
-          {% block admin_link %}{% endblock %}
+          {% if is_admin(request) %}
+          <a href="/admin">Admin</a>
+          {% endif %}
           <a href="/logout" class="btn-link">Sign out</a>
         {% endif %}
       </nav>

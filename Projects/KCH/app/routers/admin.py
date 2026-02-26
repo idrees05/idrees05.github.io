@@ -2,16 +2,15 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from auth import require_admin
 from database import get_db
 from importer import CSV_DIR, run_import
 from models import TestRun, TestScript
+from shared import templates
 
 router = APIRouter(prefix="/admin")
-templates = Jinja2Templates(directory="templates")
 
 
 @router.get("", response_class=HTMLResponse)
