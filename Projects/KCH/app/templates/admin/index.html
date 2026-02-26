@@ -53,6 +53,49 @@
     </section>
 
     <section class="admin-card">
+      <h2 class="admin-card-title">Upload Test Scripts CSV</h2>
+      <form method="post" action="/admin/upload" enctype="multipart/form-data" class="upload-form">
+        <div class="form-group">
+          <label for="tester_type" class="form-label">Tester Type</label>
+          <select id="tester_type" name="tester_type" class="form-select" required>
+            <option value="everyday">Everyday Users</option>
+            <option value="power">Power Users</option>
+            <option value="specialist">Specialist Users</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="csv_file" class="form-label">CSV File</label>
+          <input id="csv_file" type="file" name="file" accept=".csv" class="form-input" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload CSV</button>
+      </form>
+
+      {% if upload_error %}
+      <div class="alert alert-error mt-2">{{ upload_error }}</div>
+      {% endif %}
+
+      {% if upload_log %}
+      <div class="import-log mt-2">
+        <h3 class="import-log-title">Upload Result</h3>
+        <ul class="import-counts">
+          <li>Inserted: <strong>{{ upload_log.inserted }}</strong></li>
+          <li>Updated: <strong>{{ upload_log.updated }}</strong></li>
+          <li>Skipped: <strong>{{ upload_log.skipped }}</strong></li>
+          <li>Total active: <strong>{{ upload_log.total_active }}</strong></li>
+        </ul>
+        {% if upload_log.errors %}
+        <h4 class="import-warn-title">Warnings</h4>
+        <ul class="import-warnings">
+          {% for err in upload_log.errors %}
+          <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="admin-card">
       <h2 class="admin-card-title">Test Runs</h2>
       <table class="data-table">
         <thead><tr><th>Status</th><th>Count</th></tr></thead>

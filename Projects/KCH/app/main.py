@@ -55,14 +55,7 @@ app = FastAPI(title="KCH UAT Test Runner", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-from auth import get_session as _get_session
 from shared import templates
-
-def _is_admin(request) -> bool:
-    session = _get_session(request)
-    return bool(session and session.get("is_admin"))
-
-templates.env.globals["is_admin"] = _is_admin
 
 app.include_router(auth.router)
 app.include_router(runs.router)

@@ -6,6 +6,7 @@ Upserts to test_scripts table; deactivates scripts not seen in import.
 """
 import csv
 import hashlib
+import io
 import logging
 import os
 from datetime import datetime
@@ -192,6 +193,74 @@ def run_import(db: Session, csv_dir: Path | None = None) -> dict[str, Any]:
         if script.script_id not in seen_ids:
             script.is_active = False
             counts["deactivated"] += 1
+
+    db.commit()
+    counts["total_active"] = db.query(TestScript).filter(TestScript.is_active == True).count()
+    return counts
+
+
+def import_from_upload(db: Session, tester_type: str, content: str) -> dict[str, Any]:
+    """Upsert scripts from an uploaded CSV. Does not deactivate existing scripts."""
+    counts = {"inserted": 0, "updated": 0, "deactivated": 0, "skipped": 0, "errors": []}
+
+    reader = csv.DictReader(io.StringIO(content))
+    headers = list(reader.fieldnames or [])
+    col_map = _build_col_map(headers, TESTER_SHEET_MAP)
+
+    sid_col = col_map.get("script_id")
+    if not sid_col:
+        counts["errors"].append("Missing Script ID column (expected: 'Test Script ID', 'Script ID', or 'ID')")
+        return counts
+
+    steps_col = col_map.get("test_steps")
+    if not steps_col:
+        counts["errors"].append("Missing Test Steps column (expected: 'Test Steps' or 'Steps')")
+        return counts
+
+    for row_num, row in enumerate(reader, start=2):
+        sid = (row.get(sid_col) or "").strip()
+        if not sid:
+            continue
+        steps = (row.get(steps_col) or "").strip()
+        if not steps:
+            counts["skipped"] += 1
+            counts["errors"].append(f"Row {row_num}: {sid} — empty test_steps, skipped")
+            continue
+
+        title_col = col_map.get("title")
+        title = (row.get(title_col) or "").strip() if title_col else sid
+
+        def get(field, _row=row, _col_map=col_map):
+            col = _col_map.get(field)
+            return (_row.get(col) or "").strip() if col else ""
+
+        data = {
+            "script_id": sid,
+            "tester_type": tester_type,
+            "source_sheet": tester_type,
+            "user_story_id": get("user_story_id"),
+            "title": title,
+            "scenario": get("scenario"),
+            "expected_outcome": get("expected_outcome"),
+            "preconditions": get("preconditions"),
+            "required_test_data": get("required_test_data"),
+            "test_steps": steps,
+            "category": get("category"),
+            "is_exploratory": False,
+            "recommended_tester_type": get("recommended_tester_type"),
+        }
+        data["row_hash"] = _row_hash(data)
+
+        existing = db.get(TestScript, sid)
+        if existing is None:
+            db.add(TestScript(**data, is_active=True, created_at=datetime.utcnow(), updated_at=datetime.utcnow()))
+            counts["inserted"] += 1
+        elif existing.row_hash != data["row_hash"]:
+            for k, v in data.items():
+                setattr(existing, k, v)
+            existing.updated_at = datetime.utcnow()
+            existing.is_active = True
+            counts["updated"] += 1
 
     db.commit()
     counts["total_active"] = db.query(TestScript).filter(TestScript.is_active == True).count()
