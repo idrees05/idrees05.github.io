@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Run Complete — KCH UAT{% endblock %}
+
+{% block content %}
+<div class="page-container page-narrow">
+  <div class="complete-header">
+    {% if run.status == 'SUBMITTED' %}
+    <div class="complete-icon">✓</div>
+    <h1 class="page-title">Run Submitted</h1>
+    <p class="page-subtitle">Thank you, {{ run.tester_name }}. Your results have been recorded.</p>
+    {% else %}
+    <h1 class="page-title">Run Summary</h1>
+    {% endif %}
+  </div>
+
+  <div class="summary-cards">
+    <div class="summary-card pass">
+      <span class="summary-count">{{ pass_count }}</span>
+      <span class="summary-label">Pass</span>
+    </div>
+    <div class="summary-card fail">
+      <span class="summary-count">{{ fail_count }}</span>
+      <span class="summary-label">Fail</span>
+    </div>
+    <div class="summary-card blocked">
+      <span class="summary-count">{{ blocked_count }}</span>
+      <span class="summary-label">Blocked</span>
+    </div>
+    <div class="summary-card nt">
+      <span class="summary-count">{{ not_tested_count }}</span>
+      <span class="summary-label">Not Tested</span>
+    </div>
+    <div class="summary-card retest">
+      <span class="summary-count">{{ retest_count }}</span>
+      <span class="summary-label">Retest Needed</span>
+    </div>
+  </div>
+
+  <div class="run-meta-block">
+    <dl class="run-meta-list">
+      <div><dt>Run ID</dt><dd><code>{{ run.run_id }}</code></dd></div>
+      <div><dt>Tester</dt><dd>{{ run.tester_name }} ({{ run.tester_email }})</dd></div>
+      <div><dt>Tester type</dt><dd>{{ run.tester_type|title }}</dd></div>
+      <div><dt>Environment</dt><dd>{{ run.environment }}</dd></div>
+      {% if run.device %}<div><dt>Device</dt><dd>{{ run.device }}</dd></div>{% endif %}
+      {% if run.browser %}<div><dt>Browser</dt><dd>{{ run.browser }}</dd></div>{% endif %}
+      {% if run.submitted_at %}<div><dt>Submitted</dt><dd>{{ run.submitted_at.strftime('%d %b %Y %H:%M') }}</dd></div>{% endif %}
+    </dl>
+  </div>
+
+  {% if failures %}
+  <div class="failures-summary">
+    <h2 class="section-title">Failures & Blocks</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Script</th>
+          <th>Title</th>
+          <th>Outcome</th>
+          <th>Category</th>
+          <th>Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for result in failures %}
+        {% set script = scripts.get(result.script_id) %}
+        <tr>
+          <td><code>{{ result.script_id }}</code></td>
+          <td>{{ script.title if script else '—' }}</td>
+          <td><span class="outcome-pill outcome-{{ result.outcome|lower }}">{{ result.outcome }}</span></td>
+          <td>{{ result.failure_category or '—' }}</td>
+          <td>{{ '✓' if result.retest_needed else '' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <div class="complete-actions">
+    <a href="/start" class="btn btn-primary">Start a new run</a>
+    <a href="/reports/run/{{ run.run_id }}" class="btn btn-secondary">View full report</a>
+    <a href="/reports/export" class="btn btn-secondary">Export CSV</a>
+  </div>
+</div>
+{% endblock %}

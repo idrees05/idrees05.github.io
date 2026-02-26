@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Test Run — {{ run.tester_name }}{% endblock %}
+
+{% block content %}
+<div class="run-layout">
+  <!-- SIDEBAR -->
+  <aside class="run-sidebar" id="run-sidebar">
+    <div class="sidebar-header">
+      <h2 class="sidebar-name">{{ run.tester_name }}</h2>
+      <p class="sidebar-meta">{{ run.tester_type|title }} · {{ run.environment }}</p>
+    </div>
+
+    <div class="sidebar-progress">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progress-bar"
+          style="width: {{ ((total - not_tested_count) / total * 100)|int if total else 0 }}%"></div>
+      </div>
+      <p class="progress-label" id="progress-label">
+        {{ total - not_tested_count }} / {{ total }} completed
+      </p>
+    </div>
+
+    <div class="sidebar-filters">
+      <input type="search" class="sidebar-search" placeholder="Search scripts…"
+        id="script-search" oninput="filterScripts(this.value)">
+    </div>
+
+    <ul class="script-list" id="script-list">
+      {% for result in results %}
+      {% set script = scripts.get(result.script_id) %}
+      {% if script %}
+      <li class="script-item {% if result.outcome == 'Pass' %}outcome-pass{% elif result.outcome == 'Fail' %}outcome-fail{% elif result.outcome == 'Blocked' %}outcome-blocked{% elif result.outcome == 'Not Tested' %}outcome-nt{% else %}outcome-none{% endif %}"
+          data-script-id="{{ result.script_id }}"
+          data-title="{{ script.title|lower }}">
+        <button class="script-item-btn"
+          hx-get="/run/{{ run.run_id }}/script/{{ result.script_id }}"
+          hx-target="#script-card-area"
+          hx-swap="innerHTML"
+          hx-on::after-request="setActive('{{ result.script_id }}')"
+          onclick="setActive('{{ result.script_id }}')"
+        >
+          <span class="script-id">{{ result.script_id }}</span>
+          <span class="script-outcome-badge">
+            {% if result.outcome == 'Pass' %}✓{% elif result.outcome == 'Fail' %}✗{% elif result.outcome == 'Blocked' %}⊘{% elif result.outcome == 'Not Tested' %}–{% else %}○{% endif %}
+          </span>
+        </button>
+      </li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+
+    <div class="sidebar-counts" id="sidebar-counts">
+      <span class="count-badge pass">✓ <span id="ct-pass">{{ pass_count }}</span></span>
+      <span class="count-badge fail">✗ <span id="ct-fail">{{ fail_count }}</span></span>
+      <span class="count-badge blocked">⊘ <span id="ct-blocked">{{ blocked_count }}</span></span>
+      <span class="count-badge none">○ <span id="ct-nt">{{ not_tested_count }}</span></span>
+    </div>
+
+    <div class="sidebar-submit">
+      {% if run.status == 'SUBMITTED' %}
+      <a href="/run/{{ run.run_id }}/complete" class="btn btn-secondary btn-full">
+        View Summary
+      </a>
+      {% else %}
+      <form method="post" action="/run/{{ run.run_id }}/submit"
+        onsubmit="return confirm('Submit this run? You cannot edit it afterwards.')">
+        <button type="submit" class="btn btn-primary btn-full">
+          Submit Run
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </aside>
+
+  <!-- MAIN SCRIPT CARD AREA -->
+  <section class="run-main" id="script-card-area"
+    hx-get="/run/{{ run.run_id }}/script/{{ first_script.script_id if first_script else '' }}"
+    hx-trigger="load"
+    hx-swap="innerHTML">
+    <div class="card-placeholder">
+      <p>Loading first script…</p>
+    </div>
+  </section>
+</div>
+
+<script>
+  const runId = "{{ run.run_id }}";
+  const isSubmitted = {{ 'true' if run.status == 'SUBMITTED' else 'false' }};
+</script>
+{% endblock %}

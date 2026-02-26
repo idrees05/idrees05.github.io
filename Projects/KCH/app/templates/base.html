@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}KCH UAT Test Runner{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <script src="/static/js/app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <span class="nhs-logo">NHS</span>
+        <span class="header-title">KCH Copilot — UAT Test Runner</span>
+      </div>
+      <nav class="header-nav">
+        {% if request.cookies.get('session') %}
+          <a href="/reports">Reports</a>
+          {% block admin_link %}{% endblock %}
+          <a href="/logout" class="btn-link">Sign out</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>KCH Copilot UAT · For internal use only · <a href="mailto:it@nhs.net">Report an issue</a></p>
+  </footer>
+</body>
+</html>

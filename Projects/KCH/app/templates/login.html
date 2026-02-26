@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — KCH UAT Test Runner</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="login-body">
+  <div class="login-container">
+    <div class="login-logo">
+      <span class="nhs-logo">NHS</span>
+    </div>
+    <h1 class="login-heading">KCH Copilot<br>UAT Test Runner</h1>
+    <p class="login-sub">Enter your access code to begin testing</p>
+
+    {% if error %}
+    <div class="alert alert-error" role="alert">
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="/login" class="login-form">
+      <div class="field-group">
+        <label for="access_code" class="field-label">Access code</label>
+        <input
+          type="password"
+          id="access_code"
+          name="access_code"
+          class="field-input"
+          placeholder="Enter code"
+          autocomplete="current-password"
+          autofocus
+          required
+        >
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Sign in</button>
+    </form>
+  </div>
+</body>
+</html>

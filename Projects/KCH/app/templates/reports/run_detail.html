@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Run Detail — {{ run.tester_name }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <a href="/reports" class="back-link">&larr; All runs</a>
+    <h1 class="page-title">{{ run.tester_name }}'s Run</h1>
+    <span class="status-badge {% if run.status == 'SUBMITTED' %}status-submitted{% else %}status-progress{% endif %}">
+      {{ run.status.replace('_', ' ') }}
+    </span>
+  </div>
+
+  <div class="run-meta-block">
+    <dl class="run-meta-list">
+      <div><dt>Email</dt><dd>{{ run.tester_email }}</dd></div>
+      <div><dt>Type</dt><dd>{{ run.tester_type|title }}</dd></div>
+      <div><dt>Environment</dt><dd>{{ run.environment }}</dd></div>
+      {% if run.department %}<div><dt>Department</dt><dd>{{ run.department }}</dd></div>{% endif %}
+      {% if run.device %}<div><dt>Device</dt><dd>{{ run.device }}</dd></div>{% endif %}
+      {% if run.browser %}<div><dt>Browser</dt><dd>{{ run.browser }}</dd></div>{% endif %}
+      <div><dt>Started</dt><dd>{{ run.started_at.strftime('%d %b %Y %H:%M') if run.started_at else '—' }}</dd></div>
+      {% if run.submitted_at %}<div><dt>Submitted</dt><dd>{{ run.submitted_at.strftime('%d %b %Y %H:%M') }}</dd></div>{% endif %}
+    </dl>
+  </div>
+
+  <div class="summary-cards summary-cards-sm">
+    <div class="summary-card pass"><span class="summary-count">{{ pass_count }}</span><span class="summary-label">Pass</span></div>
+    <div class="summary-card fail"><span class="summary-count">{{ fail_count }}</span><span class="summary-label">Fail</span></div>
+    <div class="summary-card blocked"><span class="summary-count">{{ blocked_count }}</span><span class="summary-label">Blocked</span></div>
+    <div class="summary-card nt"><span class="summary-count">{{ not_tested_count }}</span><span class="summary-label">Not Tested</span></div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Script ID</th>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Outcome</th>
+        <th>Failure Category</th>
+        <th>Retest</th>
+        <th>Comments</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for result in results %}
+      {% set script = scripts.get(result.script_id) %}
+      <tr class="{% if result.outcome == 'Fail' %}row-fail{% elif result.outcome == 'Blocked' %}row-blocked{% endif %}">
+        <td><code>{{ result.script_id }}</code></td>
+        <td>{{ script.title if script else '—' }}</td>
+        <td>{{ script.category if script else '—' }}</td>
+        <td>
+          <span class="outcome-pill outcome-{{ (result.outcome or 'none')|lower|replace(' ', '-') }}">
+            {{ result.outcome or '—' }}
+          </span>
+        </td>
+        <td>{{ result.failure_category or '—' }}</td>
+        <td>{{ '✓' if result.retest_needed else '' }}</td>
+        <td>{{ result.comments or '' }}</td>
+      </tr>
+      {% if result.happened %}
+      <tr class="detail-row">
+        <td colspan="7">
+          <strong>What happened:</strong> {{ result.happened }}
+          {% if result.expected_instead %}
+          &nbsp;·&nbsp; <strong>Expected:</strong> {{ result.expected_instead }}
+          {% endif %}
+        </td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% if evidence %}
+<ul class="evidence-list">
+  {% for ev in evidence %}
+  <li class="evidence-item">
+    {% if ev.evidence_type == 'url' %}
+      <span class="ev-icon">🔗</span>
+      <a href="{{ ev.url }}" target="_blank" rel="noopener" class="ev-link">{{ ev.url }}</a>
+    {% else %}
+      <span class="ev-icon">📎</span>
+      <span class="ev-name">{{ ev.file_name }}</span>
+      {% if ev.file_size %}
+      <span class="ev-size">({{ (ev.file_size / 1024)|round(1) }} KB)</span>
+      {% endif %}
+    {% endif %}
+    <button
+      class="btn btn-sm btn-danger ev-delete"
+      hx-delete="/run/{{ run_id }}/evidence/{{ ev.evidence_id }}"
+      hx-target="#evidence-list-{{ result.script_id if result else '' }}"
+      hx-swap="innerHTML"
+      hx-confirm="Remove this evidence?"
+    >Remove</button>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="no-evidence">No evidence attached.</p>
+{% endif %}

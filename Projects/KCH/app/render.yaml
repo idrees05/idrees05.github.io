@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: kch-uat-runner
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kch-uat-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_CODE
+        sync: false
+      - key: ADMIN_CODE
+        sync: false
+      - key: CSV_DIR
+        value: ../
+
+databases:
+  - name: kch-uat-db
+    databaseName: kch_uat
+    plan: free

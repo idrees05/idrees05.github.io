@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Reports — KCH UAT{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Test Runs</h1>
+    <div class="page-actions">
+      <a href="/reports/scripts" class="btn btn-secondary btn-sm">Script pass rates</a>
+      <a href="/reports/failures" class="btn btn-secondary btn-sm">Failures</a>
+      <a href="/reports/retest" class="btn btn-secondary btn-sm">Retest list</a>
+      <a href="/reports/export" class="btn btn-primary btn-sm">Export CSV</a>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="filter-bar">
+    <select name="tester_type" class="field-select field-select-sm">
+      <option value="">All types</option>
+      {% for t in ['everyday', 'power', 'specialist'] %}
+      <option value="{{ t }}" {% if filters.tester_type == t %}selected{% endif %}>{{ t|title }}</option>
+      {% endfor %}
+    </select>
+    <select name="environment" class="field-select field-select-sm">
+      <option value="">All environments</option>
+      {% for e in ['DEV', 'TEST', 'UAT', 'PROD'] %}
+      <option value="{{ e }}" {% if filters.environment == e %}selected{% endif %}>{{ e }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" class="field-select field-select-sm">
+      <option value="">All statuses</option>
+      <option value="IN_PROGRESS" {% if filters.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+      <option value="SUBMITTED" {% if filters.status == 'SUBMITTED' %}selected{% endif %}>Submitted</option>
+    </select>
+    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+    <a href="/reports" class="btn btn-link btn-sm">Clear</a>
+  </form>
+
+  {% if run_data %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Tester</th>
+        <th>Type</th>
+        <th>Env</th>
+        <th>Pass</th>
+        <th>Fail</th>
+        <th>Blocked</th>
+        <th>NT</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Started</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in run_data %}
+      <tr>
+        <td>
+          <strong>{{ d.run.tester_name }}</strong><br>
+          <small>{{ d.run.tester_email }}</small>
+        </td>
+        <td>{{ d.run.tester_type|title }}</td>
+        <td>{{ d.run.environment }}</td>
+        <td class="text-pass">{{ d.pass }}</td>
+        <td class="text-fail">{{ d.fail }}</td>
+        <td class="text-blocked">{{ d.blocked }}</td>
+        <td>{{ d.not_tested }}</td>
+        <td>{{ d.total }}</td>
+        <td>
+          <span class="status-badge {% if d.run.status == 'SUBMITTED' %}status-submitted{% else %}status-progress{% endif %}">
+            {{ d.run.status.replace('_', ' ') }}
+          </span>
+        </td>
+        <td>
+          {% if d.run.started_at %}
+          {{ d.run.started_at.strftime('%d %b %H:%M') }}
+          {% endif %}
+        </td>
+        <td>
+          <a href="/reports/run/{{ d.run.run_id }}" class="btn btn-sm">View</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <p>No test runs found. <a href="/start">Start a run</a>.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

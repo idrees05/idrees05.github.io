@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Script Pass Rates — KCH UAT{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <a href="/reports" class="back-link">&larr; Reports</a>
+    <h1 class="page-title">Script Pass Rates</h1>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Script ID</th>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Type</th>
+        <th>Runs</th>
+        <th>Pass</th>
+        <th>Fail</th>
+        <th>Pass Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in script_stats %}
+      <tr>
+        <td><code>{{ s.script.script_id }}</code></td>
+        <td>{{ s.script.title }}</td>
+        <td>{{ s.script.category or '—' }}</td>
+        <td>{{ s.script.tester_type|title }}</td>
+        <td>{{ s.total_runs }}</td>
+        <td class="text-pass">{{ s.pass_count }}</td>
+        <td class="text-fail">{{ s.fail_count }}</td>
+        <td>
+          {% if s.pass_rate is not none %}
+          <div class="mini-bar-wrap">
+            <div class="mini-bar" style="width: {{ s.pass_rate }}%"></div>
+          </div>
+          {{ s.pass_rate }}%
+          {% else %}
+          <span class="text-muted">No runs</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% if not script %}
+<div class="card-placeholder">
+  <p>Script not found.</p>
+</div>
+{% else %}
+<div class="script-card" id="card-{{ script.script_id }}">
+  <div class="card-header">
+    <div class="card-id-row">
+      <span class="card-script-id">{{ script.script_id }}</span>
+      {% if script.category %}
+      <span class="category-tag">{{ script.category }}</span>
+      {% endif %}
+      {% if script.is_exploratory %}
+      <span class="exploratory-tag">Exploratory</span>
+      {% endif %}
+    </div>
+    <h2 class="card-title">{{ script.title }}</h2>
+  </div>
+
+  {% if script.scenario %}
+  <div class="card-section">
+    <h3 class="card-section-title">Scenario</h3>
+    <p class="card-body-text">{{ script.scenario }}</p>
+  </div>
+  {% endif %}
+
+  {% if script.preconditions %}
+  <div class="card-section">
+    <h3 class="card-section-title">Preconditions / User Role</h3>
+    <p class="card-body-text">{{ script.preconditions }}</p>
+  </div>
+  {% endif %}
+
+  {% if script.required_test_data %}
+  <div class="card-section">
+    <h3 class="card-section-title">Required Test Data</h3>
+    <p class="card-body-text">{{ script.required_test_data }}</p>
+  </div>
+  {% endif %}
+
+  <div class="card-section">
+    <h3 class="card-section-title">Test Steps</h3>
+    <div class="card-steps">{{ script.test_steps | replace('\n', '<br>') | safe }}</div>
+  </div>
+
+  {% if script.expected_outcome %}
+  <div class="card-section card-expected">
+    <h3 class="card-section-title">Expected Outcome</h3>
+    <p class="card-body-text">{{ script.expected_outcome }}</p>
+  </div>
+  {% endif %}
+
+  <!-- RESULT FORM -->
+  <div class="card-result-section">
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    {% if saved %}
+    <div class="alert alert-success" id="save-banner">Saved successfully.</div>
+    {% endif %}
+
+    {% if run and run.status == 'SUBMITTED' %}
+    <div class="result-readonly">
+      <p class="result-label">Outcome recorded:</p>
+      <span class="outcome-pill outcome-{{ (result.outcome or 'none')|lower|replace(' ', '-') }}">
+        {{ result.outcome or 'Not recorded' }}
+      </span>
+      {% if result.comments %}
+      <p class="mt-1"><strong>Comments:</strong> {{ result.comments }}</p>
+      {% endif %}
+    </div>
+    {% else %}
+    <form
+      hx-post="/run/{{ run.run_id }}/script/{{ script.script_id }}/result"
+      hx-target="#script-card-area"
+      hx-swap="innerHTML"
+      id="result-form-{{ script.script_id }}"
+      class="result-form"
+    >
+      <div class="field-group">
+        <fieldset>
+          <legend class="field-label">Outcome</legend>
+          <div class="outcome-radios">
+            {% for opt in ['Pass', 'Fail', 'Blocked', 'Not Tested'] %}
+            <label class="outcome-radio outcome-{{ opt|lower|replace(' ', '-') }}">
+              <input type="radio" name="outcome" value="{{ opt }}"
+                {% if result and result.outcome == opt %}checked{% endif %}
+                onchange="handleOutcomeChange(this.value, '{{ script.script_id }}')"
+              >
+              <span>{{ opt }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- Conditional: shown only for Fail / Blocked -->
+      <div id="failure-fields-{{ script.script_id }}"
+        class="failure-fields"
+        style="display: {% if result and result.outcome in ('Fail', 'Blocked') %}block{% else %}none{% endif %}">
+
+        <div class="field-group">
+          <label class="field-label" for="failure_category_{{ script.script_id }}">
+            Failure category *
+          </label>
+          <select id="failure_category_{{ script.script_id }}" name="failure_category"
+            class="field-select">
+            <option value="">— Select —</option>
+            {% for cat in [
+              'UI / display issue',
+              'Incorrect response',
+              'Missing information',
+              'System error / crash',
+              'Performance issue',
+              'Permission / access error',
+              'Data not found',
+              'Integration failure',
+              'Other'
+            ] %}
+            <option value="{{ cat }}"
+              {% if result and result.failure_category == cat %}selected{% endif %}>
+              {{ cat }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="happened_{{ script.script_id }}">
+            What actually happened? *
+          </label>
+          <textarea id="happened_{{ script.script_id }}" name="happened"
+            class="field-textarea" rows="3"
+            placeholder="Describe what the system did instead of the expected outcome">{{ result.happened or '' if result else '' }}</textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="expected_instead_{{ script.script_id }}">
+            What should have happened? (optional)
+          </label>
+          <textarea id="expected_instead_{{ script.script_id }}" name="expected_instead"
+            class="field-textarea" rows="2"
+            placeholder="Describe the correct behaviour">{{ result.expected_instead or '' if result else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Evidence upload -->
+      <div class="field-group">
+        <label class="field-label">Evidence (optional)</label>
+        <div id="evidence-list-{{ script.script_id }}">
+          {% include "partials/evidence_list.html" %}
+        </div>
+        <div class="evidence-upload-row">
+          <form
+            hx-post="/run/{{ run.run_id }}/script/{{ script.script_id }}/evidence"
+            hx-target="#evidence-list-{{ script.script_id }}"
+            hx-swap="innerHTML"
+            hx-encoding="multipart/form-data"
+            class="evidence-upload-form"
+          >
+            <input type="file" name="file" class="file-input"
+              accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip">
+            <button type="submit" class="btn btn-sm">Upload file</button>
+          </form>
+          <form
+            hx-post="/run/{{ run.run_id }}/script/{{ script.script_id }}/evidence"
+            hx-target="#evidence-list-{{ script.script_id }}"
+            hx-swap="innerHTML"
+            class="evidence-url-form"
+          >
+            <input type="url" name="evidence_url" class="field-input field-input-inline"
+              placeholder="Or paste a URL (SharePoint, screenshot link…)">
+            <button type="submit" class="btn btn-sm">Add URL</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Retest toggle -->
+      <div class="field-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="retest_needed" value="on"
+            {% if result and result.retest_needed %}checked{% endif %}>
+          <span>Flag for retest</span>
+        </label>
+      </div>
+
+      <!-- Comments -->
+      <div class="field-group">
+        <label class="field-label" for="comments_{{ script.script_id }}">
+          Additional comments (optional)
+        </label>
+        <textarea id="comments_{{ script.script_id }}" name="comments"
+          class="field-textarea" rows="2"
+          placeholder="Any other notes">{{ result.comments or '' if result else '' }}</textarea>
+      </div>
+
+      <div class="card-actions">
+        <button type="submit" class="btn btn-secondary" name="_action" value="save">
+          Save
+        </button>
+        {% if next_script_id %}
+        <button type="submit" class="btn btn-primary" name="_action" value="save_next"
+          hx-post="/run/{{ run.run_id }}/script/{{ script.script_id }}/result"
+          hx-target="#script-card-area"
+          hx-swap="innerHTML"
+          hx-on::after-request="htmx.ajax('GET', '/run/{{ run.run_id }}/script/{{ next_script_id }}', '#script-card-area')"
+        >
+          Save &amp; Next &rarr;
+        </button>
+        {% endif %}
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  // Initialise outcome-dependent fields for this card
+  (function() {
+    const outcome = document.querySelector(
+      'input[name="outcome"]:checked'
+    );
+    if (outcome) handleOutcomeChange(outcome.value, '{{ script.script_id }}');
+  })();
+  // Hide save banner after 3s
+  const banner = document.getElementById('save-banner');
+  if (banner) setTimeout(() => banner.remove(), 3000);
+
+  // Update sidebar badge for this script
+  updateSidebarItem('{{ script.script_id }}', '{{ result.outcome or '' if result else '' }}');
+</script>
+{% endif %}

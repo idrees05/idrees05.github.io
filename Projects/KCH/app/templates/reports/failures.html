@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Failure Analysis — KCH UAT{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <a href="/reports" class="back-link">&larr; Reports</a>
+    <h1 class="page-title">Failure Analysis</h1>
+    <p class="page-subtitle">{{ total }} total failures / blocks across all runs</p>
+  </div>
+
+  {% for category, items in grouped.items() %}
+  <section class="failure-group">
+    <h2 class="failure-category-title">
+      {{ category }}
+      <span class="failure-count-badge">{{ items|length }}</span>
+    </h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Script</th>
+          <th>Title</th>
+          <th>Outcome</th>
+          <th>Tester</th>
+          <th>What happened</th>
+          <th>Retest</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in items %}
+        {% set script = scripts.get(f.script_id) %}
+        {% set run = runs.get(f.run_id) %}
+        <tr>
+          <td><code>{{ f.script_id }}</code></td>
+          <td>{{ script.title if script else '—' }}</td>
+          <td><span class="outcome-pill outcome-{{ f.outcome|lower }}">{{ f.outcome }}</span></td>
+          <td>{{ run.tester_name if run else '—' }}</td>
+          <td>{{ f.happened or '—' }}</td>
+          <td>{{ '✓' if f.retest_needed else '' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% else %}
+  <div class="empty-state">
+    <p>No failures recorded yet.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Start a Test Run — KCH UAT{% endblock %}
+
+{% block content %}
+<div class="page-container page-narrow">
+  <div class="page-header">
+    <h1 class="page-title">Start a New Test Run</h1>
+    <p class="page-subtitle">Fill in your details below. All fields marked * are required.</p>
+  </div>
+
+  <form method="post" action="/start" class="form-card" novalidate>
+
+    <section class="form-section">
+      <h2 class="section-title">Your Details</h2>
+
+      <div class="field-group {% if errors.tester_name %}has-error{% endif %}">
+        <label for="tester_name" class="field-label">Full name *</label>
+        <input
+          type="text"
+          id="tester_name"
+          name="tester_name"
+          class="field-input"
+          value="{{ form.tester_name or '' }}"
+          required
+          autocomplete="name"
+        >
+        {% if errors.tester_name %}
+        <p class="field-error">{{ errors.tester_name }}</p>
+        {% endif %}
+      </div>
+
+      <div class="field-group {% if errors.tester_email %}has-error{% endif %}">
+        <label for="tester_email" class="field-label">NHS email address *</label>
+        <input
+          type="email"
+          id="tester_email"
+          name="tester_email"
+          class="field-input"
+          value="{{ form.tester_email or '' }}"
+          required
+          placeholder="your.name@nhs.net"
+          autocomplete="email"
+        >
+        <p class="field-hint">Must end in @nhs.net</p>
+        {% if errors.tester_email %}
+        <p class="field-error">{{ errors.tester_email }}</p>
+        {% endif %}
+      </div>
+
+      <div class="field-group {% if errors.department %}has-error{% endif %}">
+        <label for="department" class="field-label">Department / ward</label>
+        <input
+          type="text"
+          id="department"
+          name="department"
+          class="field-input"
+          value="{{ form.department or '' }}"
+          placeholder="e.g. Pharmacy, A&E, IT"
+        >
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2 class="section-title">Tester Role</h2>
+      <p class="section-desc">Your role determines which test scripts you will be assigned.</p>
+
+      <div class="field-group {% if errors.tester_type %}has-error{% endif %}">
+        <fieldset>
+          <legend class="field-label">Tester type *</legend>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="tester_type" value="everyday"
+                {% if form.tester_type == 'everyday' %}checked{% endif %} required>
+              <span class="radio-text">
+                <strong>Everyday User</strong>
+                <span class="radio-desc">Standard employee — general use cases (30 scripts)</span>
+              </span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="tester_type" value="power"
+                {% if form.tester_type == 'power' %}checked{% endif %}>
+              <span class="radio-text">
+                <strong>Power User</strong>
+                <span class="radio-desc">Advanced functionality — complex workflows (19 scripts)</span>
+              </span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="tester_type" value="specialist"
+                {% if form.tester_type == 'specialist' %}checked{% endif %}>
+              <span class="radio-text">
+                <strong>Specialist User</strong>
+                <span class="radio-desc">Clinical / specialist roles — specific scenarios (27 scripts)</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+        {% if errors.tester_type %}
+        <p class="field-error">{{ errors.tester_type }}</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2 class="section-title">Test Environment</h2>
+
+      <div class="field-group {% if errors.environment %}has-error{% endif %}">
+        <label for="environment" class="field-label">Environment *</label>
+        <select id="environment" name="environment" class="field-select" required>
+          <option value="">— Select —</option>
+          {% for env in ['DEV', 'TEST', 'UAT', 'PROD'] %}
+          <option value="{{ env }}" {% if form.environment == env %}selected{% endif %}>{{ env }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.environment %}
+        <p class="field-error">{{ errors.environment }}</p>
+        {% endif %}
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label for="device" class="field-label">Device</label>
+          <input type="text" id="device" name="device" class="field-input"
+            value="{{ form.device or '' }}" placeholder="e.g. Windows laptop, iPhone">
+        </div>
+        <div class="field-group">
+          <label for="browser" class="field-label">Browser</label>
+          <input type="text" id="browser" name="browser" class="field-input"
+            value="{{ form.browser or '' }}" placeholder="e.g. Chrome 122, Edge 121">
+        </div>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2 class="section-title">Access Issues</h2>
+
+      <div class="field-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="access_issues" value="on"
+            id="access_issues" {% if form.access_issues %}checked{% endif %}
+            onchange="document.getElementById('access_issues_notes_wrap').style.display=this.checked?'block':'none'">
+          <span>I have access issues that affected testing</span>
+        </label>
+      </div>
+
+      <div id="access_issues_notes_wrap"
+        style="display: {% if form.access_issues %}block{% else %}none{% endif %}">
+        <div class="field-group">
+          <label for="access_issues_notes" class="field-label">Describe the access issue</label>
+          <textarea id="access_issues_notes" name="access_issues_notes"
+            class="field-textarea" rows="3"
+            placeholder="Describe what access you could not get">{{ form.access_issues_notes or '' }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg">
+        Begin Testing &rarr;
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

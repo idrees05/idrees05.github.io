@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Retest List — KCH UAT{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <a href="/reports" class="back-link">&larr; Reports</a>
+    <h1 class="page-title">Retest List</h1>
+    <p class="page-subtitle">{{ total }} scripts flagged for retest</p>
+  </div>
+
+  {% if retests %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Script</th>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Outcome</th>
+        <th>Tester</th>
+        <th>Env</th>
+        <th>Failure category</th>
+        <th>What happened</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in retests %}
+      {% set script = scripts.get(r.script_id) %}
+      {% set run = runs.get(r.run_id) %}
+      <tr>
+        <td><code>{{ r.script_id }}</code></td>
+        <td>{{ script.title if script else '—' }}</td>
+        <td>{{ script.category if script else '—' }}</td>
+        <td><span class="outcome-pill outcome-{{ (r.outcome or 'none')|lower|replace(' ', '-') }}">{{ r.outcome or '—' }}</span></td>
+        <td>{{ run.tester_name if run else '—' }}</td>
+        <td>{{ run.environment if run else '—' }}</td>
+        <td>{{ r.failure_category or '—' }}</td>
+        <td>{{ r.happened or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <p>No scripts flagged for retest.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

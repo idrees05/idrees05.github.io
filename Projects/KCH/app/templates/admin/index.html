@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Admin — KCH UAT{% endblock %}
+{% block admin_link %}<a href="/admin">Admin</a>{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">Admin Dashboard</h1>
+  </div>
+
+  <div class="admin-grid">
+    <section class="admin-card">
+      <h2 class="admin-card-title">Test Scripts</h2>
+      {% if last_import %}
+      <p class="admin-meta">Last imported: {{ last_import.strftime('%d %b %Y %H:%M') }}</p>
+      {% else %}
+      <p class="admin-meta">No import recorded yet.</p>
+      {% endif %}
+      <table class="data-table">
+        <thead><tr><th>Type</th><th>Active Scripts</th></tr></thead>
+        <tbody>
+          <tr><td>Everyday</td><td>{{ script_counts.everyday }}</td></tr>
+          <tr><td>Power</td><td>{{ script_counts.power }}</td></tr>
+          <tr><td>Specialist</td><td>{{ script_counts.specialist }}</td></tr>
+          <tr><td><strong>Total</strong></td><td><strong>{{ script_counts.total }}</strong></td></tr>
+        </tbody>
+      </table>
+
+      <form method="post" action="/admin/import" class="mt-2">
+        <button type="submit" class="btn btn-primary">Re-import CSVs</button>
+      </form>
+
+      {% if import_log %}
+      <div class="import-log">
+        <h3 class="import-log-title">Import Result</h3>
+        <ul class="import-counts">
+          <li>Inserted: <strong>{{ import_log.inserted }}</strong></li>
+          <li>Updated: <strong>{{ import_log.updated }}</strong></li>
+          <li>Deactivated: <strong>{{ import_log.deactivated }}</strong></li>
+          <li>Skipped: <strong>{{ import_log.skipped }}</strong></li>
+          <li>Total active: <strong>{{ import_log.total_active }}</strong></li>
+        </ul>
+        {% if import_log.errors %}
+        <h4 class="import-warn-title">Warnings</h4>
+        <ul class="import-warnings">
+          {% for err in import_log.errors %}
+          <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="admin-card">
+      <h2 class="admin-card-title">Test Runs</h2>
+      <table class="data-table">
+        <thead><tr><th>Status</th><th>Count</th></tr></thead>
+        <tbody>
+          <tr><td>Total</td><td>{{ run_stats.total }}</td></tr>
+          <tr><td>Submitted</td><td>{{ run_stats.submitted }}</td></tr>
+          <tr><td>In Progress</td><td>{{ run_stats.in_progress }}</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="admin-card">
+      <h2 class="admin-card-title">Quick Links</h2>
+      <ul class="quick-links">
+        <li><a href="/reports">All test runs</a></li>
+        <li><a href="/reports/scripts">Script pass rates</a></li>
+        <li><a href="/reports/failures">Failure analysis</a></li>
+        <li><a href="/reports/retest">Retest list</a></li>
+        <li><a href="/reports/export">Export CSV</a></li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}
