@@ -187,9 +187,14 @@ def run_import(db: Session, csv_dir: Path | None = None) -> dict[str, Any]:
                     counts["updated"] += 1
                 # else: unchanged, skip
 
-    # Deactivate scripts no longer in CSVs
-    all_active = db.query(TestScript).filter(TestScript.is_active == True).all()
-    for script in all_active:
+    # Deactivate scripts from standard types that are no longer in the CSVs.
+    # Custom-type scripts (uploaded via admin upload) are never touched here.
+    standard_types = set(TESTER_FILES.keys())
+    all_active_standard = db.query(TestScript).filter(
+        TestScript.is_active == True,
+        TestScript.tester_type.in_(standard_types),
+    ).all()
+    for script in all_active_standard:
         if script.script_id not in seen_ids:
             script.is_active = False
             counts["deactivated"] += 1

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from auth import get_session, require_session
 from database import get_db
-from models import TestResult, TestRun, TestScript
+from models import TesterType, TestResult, TestRun, TestScript
 from schemas import StartRunRequest
 from shared import templates
 
@@ -21,8 +21,20 @@ async def index(request: Request, session: dict = Depends(require_session)):
 
 
 @router.get("/start", response_class=HTMLResponse)
-async def start_page(request: Request, session: dict = Depends(require_session)):
-    return templates.TemplateResponse("start.html", {"request": request, "errors": {}, "form": {}})
+async def start_page(
+    request: Request,
+    session: dict = Depends(require_session),
+    db: Session = Depends(get_db),
+):
+    tester_types = (
+        db.query(TesterType)
+        .filter(TesterType.is_active == True)
+        .order_by(TesterType.sort_order)
+        .all()
+    )
+    return templates.TemplateResponse(
+        "start.html", {"request": request, "errors": {}, "form": {}, "tester_types": tester_types}
+    )
 
 
 @router.post("/start")
@@ -52,13 +64,52 @@ async def start_submit(
         "access_issues_notes": access_issues_notes,
     }
 
+    tester_types = (
+        db.query(TesterType)
+        .filter(TesterType.is_active == True)
+        .order_by(TesterType.sort_order)
+        .all()
+    )
+
     try:
         validated = StartRunRequest(**form_data)
     except ValidationError as e:
         errors = {err["loc"][-1]: err["msg"] for err in e.errors()}
         return templates.TemplateResponse(
             "start.html",
-            {"request": request, "errors": errors, "form": form_data},
+            {"request": request, "errors": errors, "form": form_data, "tester_types": tester_types},
+            status_code=422,
+        )
+
+    tt = db.get(TesterType, validated.tester_type)
+    if not tt or not tt.is_active:
+        return templates.TemplateResponse(
+            "start.html",
+            {
+                "request": request,
+                "errors": {"tester_type": "Invalid tester type selected."},
+                "form": form_data,
+                "tester_types": tester_types,
+            },
+            status_code=422,
+        )
+
+    # Fetch scripts before creating the run — reject early if none are available
+    scripts = (
+        db.query(TestScript)
+        .filter(TestScript.tester_type == validated.tester_type, TestScript.is_active == True)
+        .order_by(TestScript.script_id)
+        .all()
+    )
+    if not scripts:
+        return templates.TemplateResponse(
+            "start.html",
+            {
+                "request": request,
+                "errors": {"tester_type": "No active test scripts are available for this tester type. Please contact an administrator."},
+                "form": form_data,
+                "tester_types": tester_types,
+            },
             status_code=422,
         )
 
@@ -79,13 +130,6 @@ async def start_submit(
     )
     db.add(run)
 
-    # Seed blank results for all active scripts of this type
-    scripts = (
-        db.query(TestScript)
-        .filter(TestScript.tester_type == validated.tester_type, TestScript.is_active == True)
-        .order_by(TestScript.script_id)
-        .all()
-    )
     for script in scripts:
         result = TestResult(
             result_id=str(uuid.uuid4()),
