@@ -19,10 +19,10 @@
       <table class="data-table">
         <thead><tr><th>Type</th><th>Active Scripts</th></tr></thead>
         <tbody>
-          <tr><td>Everyday</td><td>{{ script_counts.everyday }}</td></tr>
-          <tr><td>Power</td><td>{{ script_counts.power }}</td></tr>
-          <tr><td>Specialist</td><td>{{ script_counts.specialist }}</td></tr>
-          <tr><td><strong>Total</strong></td><td><strong>{{ script_counts.total }}</strong></td></tr>
+          {% for sc in script_counts %}
+          <tr><td>{{ sc.label }}</td><td>{{ sc.count }}</td></tr>
+          {% endfor %}
+          <tr><td><strong>Total</strong></td><td><strong>{{ script_total }}</strong></td></tr>
         </tbody>
       </table>
 
@@ -58,9 +58,9 @@
         <div class="form-group">
           <label for="tester_type" class="form-label">Tester Type</label>
           <select id="tester_type" name="tester_type" class="form-select" required>
-            <option value="everyday">Everyday Users</option>
-            <option value="power">Power Users</option>
-            <option value="specialist">Specialist Users</option>
+            {% for tt in tester_types %}
+            <option value="{{ tt.slug }}">{{ tt.label }}</option>
+            {% endfor %}
           </select>
         </div>
         <div class="form-group">
@@ -93,6 +93,63 @@
         {% endif %}
       </div>
       {% endif %}
+    </section>
+
+    <section class="admin-card">
+      <h2 class="admin-card-title">Tester Types</h2>
+
+      {% if type_error %}
+      <div class="alert alert-error mt-2">{{ type_error }}</div>
+      {% endif %}
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Slug</th><th>Label</th><th>Description</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for tt in all_tester_types %}
+          <tr>
+            <td><code>{{ tt.slug }}</code></td>
+            <td>{{ tt.label }}</td>
+            <td>{{ tt.description or '—' }}</td>
+            <td>
+              {% if tt.is_active %}
+              <span class="status-badge status-submitted">Active</span>
+              {% else %}
+              <span class="status-badge status-progress">Inactive</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="post" action="/admin/tester-types/{{ tt.slug }}/toggle" style="display:inline">
+                <button type="submit" class="btn btn-sm">
+                  {% if tt.is_active %}Deactivate{% else %}Reactivate{% endif %}
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 class="admin-card-subtitle mt-2">Add Tester Type</h3>
+      <form method="post" action="/admin/tester-types" class="upload-form">
+        <div class="form-group">
+          <label for="tt_slug" class="form-label">Slug <span class="field-hint">(lowercase, no spaces)</span></label>
+          <input id="tt_slug" type="text" name="slug" class="form-input" required
+            placeholder="e.g. cardiology">
+        </div>
+        <div class="form-group">
+          <label for="tt_label" class="form-label">Label</label>
+          <input id="tt_label" type="text" name="label" class="form-input" required
+            placeholder="e.g. Cardiology Team">
+        </div>
+        <div class="form-group">
+          <label for="tt_desc" class="form-label">Description</label>
+          <input id="tt_desc" type="text" name="description" class="form-input"
+            placeholder="e.g. Cardiology-specific scenarios">
+        </div>
+        <button type="submit" class="btn btn-primary">Add Type</button>
+      </form>
     </section>
 
     <section class="admin-card">

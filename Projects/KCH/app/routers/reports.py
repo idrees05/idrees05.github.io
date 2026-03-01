@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from auth import require_session
 from database import get_db
-from models import TestResult, TestRun, TestScript
+from models import TesterType, TestResult, TestRun, TestScript
 from shared import templates
 
 router = APIRouter(prefix="/reports")
@@ -47,12 +47,20 @@ async def reports_index(
             "not_tested": sum(1 for r in results if r.outcome is None or r.outcome == "Not Tested"),
         })
 
+    tester_types = (
+        db.query(TesterType)
+        .filter(TesterType.is_active == True)
+        .order_by(TesterType.sort_order)
+        .all()
+    )
+
     return templates.TemplateResponse(
         "reports/index.html",
         {
             "request": request,
             "run_data": run_data,
             "filters": {"tester_type": tester_type, "environment": environment, "status": status},
+            "tester_types": tester_types,
         },
     )
 

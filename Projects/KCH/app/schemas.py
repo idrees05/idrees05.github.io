@@ -22,14 +22,6 @@ class StartRunRequest(BaseModel):
             raise ValueError("Email must end with @nhs.net")
         return v
 
-    @field_validator("tester_type")
-    @classmethod
-    def valid_tester_type(cls, v: str) -> str:
-        allowed = {"everyday", "power", "specialist"}
-        if v.lower() not in allowed:
-            raise ValueError(f"tester_type must be one of {allowed}")
-        return v.lower()
-
     @field_validator("environment")
     @classmethod
     def valid_environment(cls, v: str) -> str:

@@ -3,6 +3,16 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, T
 from database import Base
 
 
+class TesterType(Base):
+    __tablename__ = "tester_types"
+    slug        = Column(String, primary_key=True)   # e.g. "everyday"
+    label       = Column(String, nullable=False)      # e.g. "Everyday Users"
+    description = Column(String, default="")          # shown on start form
+    is_active   = Column(Boolean, default=True)
+    sort_order  = Column(Integer, default=0)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+
 class TestScript(Base):
     __tablename__ = "test_scripts"
 

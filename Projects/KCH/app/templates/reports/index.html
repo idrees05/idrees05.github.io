@@ -17,8 +17,8 @@
   <form method="get" class="filter-bar">
     <select name="tester_type" class="field-select field-select-sm">
       <option value="">All types</option>
-      {% for t in ['everyday', 'power', 'specialist'] %}
-      <option value="{{ t }}" {% if filters.tester_type == t %}selected{% endif %}>{{ t|title }}</option>
+      {% for tt in tester_types %}
+      <option value="{{ tt.slug }}" {% if filters.tester_type == tt.slug %}selected{% endif %}>{{ tt.label }}</option>
       {% endfor %}
     </select>
     <select name="environment" class="field-select field-select-sm">

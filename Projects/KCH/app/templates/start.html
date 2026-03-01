@@ -68,30 +68,17 @@
         <fieldset>
           <legend class="field-label">Tester type *</legend>
           <div class="radio-group">
+            {% for tt in tester_types %}
             <label class="radio-label">
-              <input type="radio" name="tester_type" value="everyday"
-                {% if form.tester_type == 'everyday' %}checked{% endif %} required>
+              <input type="radio" name="tester_type" value="{{ tt.slug }}"
+                {% if form.tester_type == tt.slug %}checked{% endif %}
+                {% if loop.first %}required{% endif %}>
               <span class="radio-text">
-                <strong>Everyday User</strong>
-                <span class="radio-desc">Standard employee — general use cases (30 scripts)</span>
+                <strong>{{ tt.label }}</strong>
+                {% if tt.description %}<span class="radio-desc">{{ tt.description }}</span>{% endif %}
               </span>
             </label>
-            <label class="radio-label">
-              <input type="radio" name="tester_type" value="power"
-                {% if form.tester_type == 'power' %}checked{% endif %}>
-              <span class="radio-text">
-                <strong>Power User</strong>
-                <span class="radio-desc">Advanced functionality — complex workflows (19 scripts)</span>
-              </span>
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="tester_type" value="specialist"
-                {% if form.tester_type == 'specialist' %}checked{% endif %}>
-              <span class="radio-text">
-                <strong>Specialist User</strong>
-                <span class="radio-desc">Clinical / specialist roles — specific scenarios (27 scripts)</span>
-              </span>
-            </label>
+            {% endfor %}
           </div>
         </fieldset>
         {% if errors.tester_type %}

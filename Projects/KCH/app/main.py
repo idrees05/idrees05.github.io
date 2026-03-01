@@ -11,6 +11,7 @@ from fastapi.templating import Jinja2Templates
 
 from database import Base, SessionLocal, engine
 from importer import CSV_DIR, run_import
+from models import TesterType
 from routers import admin, auth, reports, results, runs
 
 load_dotenv()
@@ -42,6 +43,24 @@ async def lifespan(app: FastAPI):
                 logger.warning("Import warning: %s", err)
     except Exception as e:
         logger.error("Import failed: %s", e)
+    finally:
+        db.close()
+
+    # Seed tester types if not present
+    db = SessionLocal()
+    try:
+        _SEED_TYPES = [
+            ("everyday",   "Everyday Users",   "Standard employee — general use cases",           0),
+            ("power",      "Power Users",      "Advanced functionality — complex workflows",       1),
+            ("specialist", "Specialist Users", "Clinical / specialist roles — specific scenarios", 2),
+        ]
+        for slug, label, desc, order in _SEED_TYPES:
+            if not db.get(TesterType, slug):
+                db.add(TesterType(slug=slug, label=label, description=desc, sort_order=order))
+        db.commit()
+        logger.info("Tester types seeded/verified")
+    except Exception as e:
+        logger.error("Tester type seed failed: %s", e)
     finally:
         db.close()
 
