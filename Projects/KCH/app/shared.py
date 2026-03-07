@@ -11,3 +11,13 @@ def _is_admin(request) -> bool:
 
 
 templates.env.globals["is_admin"] = _is_admin
+
+import json as _json
+
+def _from_json(value):
+    try:
+        return _json.loads(value) if value else []
+    except Exception:
+        return []
+
+templates.env.filters["from_json"] = _from_json

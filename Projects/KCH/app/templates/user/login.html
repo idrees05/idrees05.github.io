@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Sign In — KCH UAT{% endblock %}
+
+{% block content %}
+<div class="page-container page-narrow">
+  <div class="page-header">
+    <h1 class="page-title">Sign In</h1>
+    {% if existing %}
+    <p class="page-subtitle" style="color:var(--nhs-blue);font-weight:600;">
+      You already have an account. Please sign in below to continue testing.
+    </p>
+    {% else %}
+    <p class="page-subtitle">Enter your email and password to access your test runs.</p>
+    {% endif %}
+  </div>
+
+  {% if error %}
+  <div class="alert alert-error" style="margin-bottom:1.25rem;padding:.875rem 1rem;background:#fdf2f2;border:1px solid #e53e3e;border-radius:6px;color:#c53030;font-size:.9rem;">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <form method="post" action="/user/login" class="form-card" novalidate>
+    <div class="field-group">
+      <label for="email" class="field-label">Email address</label>
+      <input type="email" id="email" name="email" class="field-input" required autocomplete="email">
+    </div>
+
+    <div class="field-group">
+      <label for="password" class="field-label">Password</label>
+      <input type="password" id="password" name="password" class="field-input" required autocomplete="current-password">
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <button type="submit" class="btn btn-primary" style="width:100%;">Sign In</button>
+    </div>
+
+    <p style="margin-top:1rem;text-align:center;font-size:.875rem;color:var(--text-muted);">
+      First time here? <a href="/start">Fill in the start form</a> to get your account created automatically.
+    </p>
+  </form>
+</div>
+{% endblock %}

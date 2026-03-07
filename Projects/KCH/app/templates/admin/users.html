@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}User Management — Admin{% endblock %}
+
+{% block content %}
+<style>
+  .admin-page .main-content,
+  body:has(.admin-page) { background: #0d1117; }
+
+  .au-page { padding: 1.5rem 2rem; }
+  .au-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
+  .au-title { font-size:1.5rem; font-weight:700; color:#e6edf3; letter-spacing:-.02em; margin:0; }
+  .au-subtitle { font-size:.875rem; color:#8b949e; margin:.25rem 0 0; }
+
+  .au-card { background:#161b22; border:1px solid #30363d; border-radius:10px; overflow:hidden; margin-bottom:1.5rem; }
+  .au-card-header { padding:.875rem 1.25rem; border-bottom:1px solid #30363d; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+  .au-card-title { font-size:.875rem; font-weight:600; color:#8b949e; text-transform:uppercase; letter-spacing:.06em; margin:0; }
+
+  .au-table { width:100%; border-collapse:collapse; font-size:.875rem; }
+  .au-table th { padding:.625rem 1rem; text-align:left; font-size:.75rem; font-weight:600; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #30363d; background:#0d1117; }
+  .au-table td { padding:.75rem 1rem; color:#c9d1d9; border-bottom:1px solid #21262d; vertical-align:middle; }
+  .au-table tr:last-child td { border-bottom:none; }
+  .au-table tr:hover td { background:#1c2128; }
+
+  .au-badge { display:inline-block; padding:.2rem .6rem; border-radius:20px; font-size:.72rem; font-weight:700; letter-spacing:.03em; }
+  .au-badge-active { background:rgba(63,185,80,.15); color:#3fb950; border:1px solid rgba(63,185,80,.3); }
+  .au-badge-inactive { background:rgba(139,148,158,.12); color:#8b949e; border:1px solid rgba(139,148,158,.3); }
+
+  .au-btn { display:inline-block; padding:.3rem .7rem; border-radius:6px; font-size:.78rem; font-weight:600; cursor:pointer; border:none; text-decoration:none; transition:all .15s; }
+  .au-btn-primary { background:#1f6feb; color:#fff; }
+  .au-btn-primary:hover { background:#388bfd; }
+  .au-btn-danger { background:rgba(248,81,73,.15); color:#f85149; border:1px solid rgba(248,81,73,.3); }
+  .au-btn-danger:hover { background:rgba(248,81,73,.25); }
+  .au-btn-ghost { background:rgba(139,148,158,.1); color:#8b949e; border:1px solid #30363d; }
+  .au-btn-ghost:hover { background:rgba(139,148,158,.2); color:#c9d1d9; }
+
+  .au-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:1000; align-items:center; justify-content:center; }
+  .au-modal-overlay.open { display:flex; }
+  .au-modal { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:1.5rem; width:min(420px,90vw); }
+  .au-modal h3 { color:#e6edf3; margin:0 0 1rem; font-size:1rem; }
+  .au-modal label { display:block; color:#8b949e; font-size:.8rem; margin:.75rem 0 .25rem; }
+  .au-modal .au-check-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.5rem; margin:.5rem 0 1rem; }
+  .au-check-item { display:flex; align-items:center; gap:.5rem; padding:.5rem .75rem; background:#0d1117; border:1px solid #30363d; border-radius:6px; cursor:pointer; font-size:.8rem; color:#c9d1d9; }
+  .au-check-item input { accent-color:#1f6feb; }
+  .au-modal-actions { display:flex; gap:.5rem; justify-content:flex-end; margin-top:1rem; }
+
+  .au-reset-banner { background:rgba(63,185,80,.1); border:1px solid rgba(63,185,80,.3); border-radius:8px; padding:1rem 1.25rem; margin-bottom:1.5rem; color:#3fb950; }
+  .au-reset-banner p { margin:0 0 .25rem; font-size:.875rem; }
+  .au-reset-banner .au-pw { font-family:monospace; font-size:1.1rem; font-weight:700; letter-spacing:.1em; }
+
+  .au-back { color:#8b949e; font-size:.875rem; text-decoration:none; display:inline-flex; align-items:center; gap:.4rem; margin-bottom:1rem; }
+  .au-back:hover { color:#c9d1d9; }
+</style>
+
+<div class="admin-page">
+<div class="au-page">
+
+  <a href="/admin" class="au-back">&#8592; Back to Admin</a>
+
+  {% if reset_info %}
+  <div class="au-reset-banner">
+    <p><strong>Password reset for {{ reset_info.name }} ({{ reset_info.email }})</strong></p>
+    <p>New temporary password:</p>
+    <p class="au-pw">{{ reset_info.password }}</p>
+    <p style="font-size:.78rem;margin-top:.5rem;color:#8b949e;">Copy this now — it will not be shown again.</p>
+  </div>
+  {% endif %}
+
+  <div class="au-header">
+    <div>
+      <h1 class="au-title">User Accounts</h1>
+      <p class="au-subtitle">{{ users|length }} registered user{{ 's' if users|length != 1 }}</p>
+    </div>
+  </div>
+
+  <div class="au-card">
+    <div class="au-card-header">
+      <span class="au-card-title">Registered Users</span>
+    </div>
+    {% if users %}
+    <table class="au-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Department</th>
+          <th>Tester Types</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th>Last Login</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td><strong style="color:#e6edf3;">{{ user.name }}</strong></td>
+          <td style="color:#8b949e;">{{ user.email }}</td>
+          <td style="color:#8b949e;">{{ user.department or '—' }}</td>
+          <td>
+            {% set types = user.tester_types | from_json if user.tester_types else [] %}
+            {% for t in types %}
+            <span class="au-badge" style="background:rgba(31,111,235,.15);color:#79c0ff;border:1px solid rgba(31,111,235,.3);margin:.1rem;">{{ t }}</span>
+            {% else %}
+            <span style="color:#8b949e;font-size:.8rem;">none</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% if user.is_active %}
+            <span class="au-badge au-badge-active">Active</span>
+            {% else %}
+            <span class="au-badge au-badge-inactive">Disabled</span>
+            {% endif %}
+          </td>
+          <td style="color:#8b949e;font-size:.8rem;">{{ user.created_at.strftime('%d %b %Y') if user.created_at else '—' }}</td>
+          <td style="color:#8b949e;font-size:.8rem;">{{ user.last_login.strftime('%d %b %Y') if user.last_login else 'Never' }}</td>
+          <td>
+            <div style="display:flex;gap:.35rem;flex-wrap:wrap;">
+              <a href="/admin/users/{{ user.user_id }}" class="au-btn au-btn-ghost">View Progress</a>
+              <button class="au-btn au-btn-ghost" onclick="openAssign('{{ user.user_id }}', '{{ user.name }}', {{ user.tester_types or '[]' }})">
+                Edit Types
+              </button>
+              <form method="post" action="/admin/users/{{ user.user_id }}/reset-password" style="display:inline;" onsubmit="return confirm('Reset password for {{ user.name }}?')">
+                <button type="submit" class="au-btn au-btn-primary">Reset PW</button>
+              </form>
+              <form method="post" action="/admin/users/{{ user.user_id }}/toggle" style="display:inline;" onsubmit="return confirm('{{ 'Disable' if user.is_active else 'Enable' }} {{ user.name }}?')">
+                <button type="submit" class="au-btn au-btn-danger">{{ 'Disable' if user.is_active else 'Enable' }}</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="padding:2.5rem;text-align:center;color:#8b949e;">
+      No user accounts yet. Users are created automatically when they fill in the start form.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+</div>
+
+<!-- Assign Types Modal -->
+<div class="au-modal-overlay" id="assign-modal">
+  <div class="au-modal">
+    <h3>Edit Tester Types — <span id="modal-name"></span></h3>
+    <form method="post" id="assign-form">
+      <label>Select tester types for this user:</label>
+      <div class="au-check-grid">
+        {% for tt in tester_types %}
+        <label class="au-check-item">
+          <input type="checkbox" name="tester_types" value="{{ tt.slug }}" class="tt-check">
+          {{ tt.label }}
+        </label>
+        {% endfor %}
+      </div>
+      <div class="au-modal-actions">
+        <button type="button" class="au-btn au-btn-ghost" onclick="closeAssign()">Cancel</button>
+        <button type="submit" class="au-btn au-btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openAssign(userId, name, currentTypes) {
+  document.getElementById('modal-name').textContent = name;
+  document.getElementById('assign-form').action = '/admin/users/' + userId + '/assign-types';
+  const checks = document.querySelectorAll('.tt-check');
+  checks.forEach(cb => {
+    cb.checked = Array.isArray(currentTypes)
+      ? currentTypes.includes(cb.value)
+      : JSON.parse(currentTypes || '[]').includes(cb.value);
+  });
+  document.getElementById('assign-modal').classList.add('open');
+}
+function closeAssign() {
+  document.getElementById('assign-modal').classList.remove('open');
+}
+document.getElementById('assign-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAssign();
+});
+</script>
+{% endblock %}

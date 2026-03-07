@@ -12,7 +12,7 @@ from fastapi.templating import Jinja2Templates
 from database import Base, SessionLocal, engine
 from importer import CSV_DIR, run_import
 from models import TesterType
-from routers import admin, auth, reports, results, runs
+from routers import admin, auth, reports, results, runs, users
 
 load_dotenv()
 
@@ -81,6 +81,7 @@ app.include_router(runs.router)
 app.include_router(results.router)
 app.include_router(admin.router)
 app.include_router(reports.router)
+app.include_router(users.router)
 
 
 @app.exception_handler(303)

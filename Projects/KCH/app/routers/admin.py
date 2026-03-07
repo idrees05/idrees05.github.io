@@ -5,10 +5,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from auth import require_admin
+from auth import generate_password, hash_password, require_admin
 from database import get_db
 from importer import CSV_DIR, import_from_upload, run_import
-from models import Evidence, TesterType, TestResult, TestRun, TestScript
+from models import Evidence, TesterType, TestResult, TestRun, TestScript, User
 from shared import templates
 
 router = APIRouter(prefix="/admin")
@@ -164,3 +164,151 @@ async def delete_run(
         db.delete(run)
         db.commit()
     return RedirectResponse("/reports", status_code=303)
+
+# ── User management ───────────────────────────────────────────────────────────
+
+@router.get("/users", response_class=HTMLResponse)
+async def admin_users(
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    users = db.query(User).order_by(User.created_at.desc()).all()
+    tester_types = db.query(TesterType).order_by(TesterType.sort_order).all()
+    return templates.TemplateResponse(
+        "admin/users.html",
+        {"request": request, "users": users, "tester_types": tester_types},
+    )
+
+
+@router.get("/users/{user_id}", response_class=HTMLResponse)
+async def admin_user_detail(
+    user_id: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, user_id)
+    if not user:
+        return RedirectResponse("/admin/users", status_code=303)
+
+    from models import TestResult, TestScript
+    runs = (
+        db.query(TestRun)
+        .filter(TestRun.tester_email == user.email)
+        .order_by(TestRun.started_at.desc())
+        .all()
+    )
+
+    # Build per-run summary counts
+    run_summaries = []
+    for run in runs:
+        results = db.query(TestResult).filter(TestResult.run_id == run.run_id).all()
+        total = len(results)
+        passed = sum(1 for r in results if r.outcome == "Pass")
+        failed = sum(1 for r in results if r.outcome == "Fail")
+        blocked = sum(1 for r in results if r.outcome == "Blocked")
+        not_tested = sum(1 for r in results if r.outcome is None or r.outcome == "Not Tested")
+        run_summaries.append({
+            "run": run,
+            "total": total,
+            "passed": passed,
+            "failed": failed,
+            "blocked": blocked,
+            "not_tested": not_tested,
+            "pct": round(passed / total * 100) if total else 0,
+        })
+
+    tester_types = db.query(TesterType).order_by(TesterType.sort_order).all()
+    return templates.TemplateResponse(
+        "admin/user_detail.html",
+        {
+            "request": request,
+            "user": user,
+            "run_summaries": run_summaries,
+            "tester_types": tester_types,
+        },
+    )
+
+
+@router.get("/users/{user_id}/run/{run_id}/results", response_class=HTMLResponse)
+async def admin_user_run_results(
+    user_id: str,
+    run_id: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    from models import TestResult, TestScript
+    results = (
+        db.query(TestResult)
+        .filter(TestResult.run_id == run_id)
+        .order_by(TestResult.script_id)
+        .all()
+    )
+    script_ids = [r.script_id for r in results]
+    scripts = {
+        s.script_id: s
+        for s in db.query(TestScript).filter(TestScript.script_id.in_(script_ids)).all()
+    }
+    return templates.TemplateResponse(
+        "admin/partials/run_results.html",
+        {"request": request, "results": results, "scripts": scripts},
+    )
+
+
+@router.post("/users/{user_id}/reset-password")
+async def admin_reset_password(
+    user_id: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, user_id)
+    if user:
+        new_pw = generate_password()
+        user.password_hash = hash_password(new_pw)
+        db.commit()
+        users = db.query(User).order_by(User.created_at.desc()).all()
+        tester_types = db.query(TesterType).order_by(TesterType.sort_order).all()
+        return templates.TemplateResponse(
+            "admin/users.html",
+            {
+                "request": request,
+                "users": users,
+                "tester_types": tester_types,
+                "reset_info": {"name": user.name, "email": user.email, "password": new_pw},
+            },
+        )
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@router.post("/users/{user_id}/assign-types")
+async def admin_assign_types(
+    user_id: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    form = await request.form()
+    selected = form.getlist("tester_types")
+    user = db.get(User, user_id)
+    if user:
+        import json as _json
+        user.tester_types = _json.dumps(selected)
+        db.commit()
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@router.post("/users/{user_id}/toggle")
+async def admin_toggle_user(
+    user_id: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, user_id)
+    if user:
+        user.is_active = not user.is_active
+        db.commit()
+    return RedirectResponse("/admin/users", status_code=303)

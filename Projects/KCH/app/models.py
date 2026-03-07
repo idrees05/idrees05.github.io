@@ -3,6 +3,20 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, T
 from database import Base
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    user_id       = Column(String, primary_key=True)
+    email         = Column(String, unique=True, nullable=False, index=True)
+    name          = Column(String, nullable=False)
+    department    = Column(String)
+    password_hash = Column(String, nullable=False)
+    tester_types  = Column(Text, default="[]")   # JSON list of tester-type slugs
+    is_active     = Column(Boolean, default=True)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    last_login    = Column(DateTime)
+
+
 class TesterType(Base):
     __tablename__ = "tester_types"
     slug        = Column(String, primary_key=True)   # e.g. "everyday"

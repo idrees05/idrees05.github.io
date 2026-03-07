@@ -6,9 +6,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from auth import get_session, require_session
+from auth import generate_password, hash_password, require_any_session, require_session, sign_session
 from database import get_db
-from models import TesterType, TestResult, TestRun, TestScript
+from models import TesterType, TestResult, TestRun, TestScript, User
 from schemas import StartRunRequest
 from shared import templates
 
@@ -16,14 +16,13 @@ router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def index(request: Request, session: dict = Depends(require_session)):
+async def index(request: Request, session: dict = Depends(require_any_session)):
     return RedirectResponse("/start", status_code=302)
 
 
 @router.get("/start", response_class=HTMLResponse)
 async def start_page(
     request: Request,
-    session: dict = Depends(require_session),
     db: Session = Depends(get_db),
 ):
     tester_types = (
@@ -49,7 +48,6 @@ async def start_submit(
     browser: str = Form(""),
     access_issues: str = Form("off"),
     access_issues_notes: str = Form(""),
-    session: dict = Depends(require_session),
     db: Session = Depends(get_db),
 ):
     form_data = {
@@ -113,11 +111,31 @@ async def start_submit(
             status_code=422,
         )
 
+    # Check for existing account
+    email_lower = validated.tester_email.strip().lower()
+    existing_user = db.query(User).filter(User.email == email_lower).first()
+    if existing_user:
+        return RedirectResponse("/user/login?existing=1", status_code=302)
+
+    # Create new user account
+    raw_password = generate_password()
+    new_user = User(
+        user_id=str(uuid.uuid4()),
+        email=email_lower,
+        name=validated.tester_name,
+        department=validated.department,
+        password_hash=hash_password(raw_password),
+        tester_types=f'["{validated.tester_type}"]',
+        is_active=True,
+        created_at=datetime.utcnow(),
+    )
+    db.add(new_user)
+
     run_id = str(uuid.uuid4())
     run = TestRun(
         run_id=run_id,
         tester_name=validated.tester_name,
-        tester_email=validated.tester_email,
+        tester_email=email_lower,
         tester_type=validated.tester_type,
         department=validated.department,
         environment=validated.environment,
@@ -142,14 +160,29 @@ async def start_submit(
         db.add(result)
 
     db.commit()
-    return RedirectResponse(f"/run/{run_id}", status_code=302)
+
+    # Set user session with temp credentials for display on /user/credentials
+    session_data = {
+        "user_id": new_user.user_id,
+        "email": new_user.email,
+        "name": new_user.name,
+        "temp_creds": {
+            "email": email_lower,
+            "password": raw_password,
+            "run_id": run_id,
+        },
+    }
+    token = sign_session(session_data)
+    response = RedirectResponse("/user/credentials", status_code=302)
+    response.set_cookie("session", token, httponly=True, samesite="lax", max_age=86400 * 7)
+    return response
 
 
 @router.get("/run/{run_id}", response_class=HTMLResponse)
 async def run_page(
     run_id: str,
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_any_session),
     db: Session = Depends(get_db),
 ):
     run = db.get(TestRun, run_id)
@@ -204,7 +237,7 @@ async def run_page(
 async def submit_run(
     run_id: str,
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_any_session),
     db: Session = Depends(get_db),
 ):
     run = db.get(TestRun, run_id)
@@ -221,7 +254,7 @@ async def submit_run(
 async def run_complete(
     run_id: str,
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_any_session),
     db: Session = Depends(get_db),
 ):
     run = db.get(TestRun, run_id)

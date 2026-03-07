@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard — KCH UAT{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My Dashboard</h1>
+      <p class="page-subtitle">Welcome back, {{ user.name }}. Here are your test runs.</p>
+    </div>
+    <div>
+      <a href="/start" class="btn btn-primary">+ New Test Run</a>
+      <a href="/user/logout" class="btn btn-ghost" style="margin-left:.5rem;">Sign Out</a>
+    </div>
+  </div>
+
+  {% if runs %}
+  <div style="background:var(--surface);border:1px solid var(--border-color);border-radius:8px;overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;font-size:.9rem;">
+      <thead>
+        <tr style="background:#f8fafc;border-bottom:2px solid var(--border-color);">
+          <th style="padding:.75rem 1rem;text-align:left;font-weight:600;color:var(--text-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;">Date</th>
+          <th style="padding:.75rem 1rem;text-align:left;font-weight:600;color:var(--text-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;">Tester Type</th>
+          <th style="padding:.75rem 1rem;text-align:left;font-weight:600;color:var(--text-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;">Environment</th>
+          <th style="padding:.75rem 1rem;text-align:left;font-weight:600;color:var(--text-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;">Status</th>
+          <th style="padding:.75rem 1rem;text-align:left;font-weight:600;color:var(--text-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in runs %}
+        <tr style="border-bottom:1px solid var(--border-color);">
+          <td style="padding:.75rem 1rem;">{{ run.started_at.strftime('%d %b %Y, %H:%M') if run.started_at else '—' }}</td>
+          <td style="padding:.75rem 1rem;text-transform:capitalize;">{{ run.tester_type }}</td>
+          <td style="padding:.75rem 1rem;">{{ run.environment }}</td>
+          <td style="padding:.75rem 1rem;">
+            {% if run.status == 'SUBMITTED' %}
+            <span style="display:inline-block;padding:.2rem .6rem;border-radius:12px;font-size:.78rem;font-weight:600;background:#dcfce7;color:#166534;">Submitted</span>
+            {% else %}
+            <span style="display:inline-block;padding:.2rem .6rem;border-radius:12px;font-size:.78rem;font-weight:600;background:#fef9c3;color:#854d0e;">In Progress</span>
+            {% endif %}
+          </td>
+          <td style="padding:.75rem 1rem;">
+            {% if run.status == 'IN_PROGRESS' %}
+            <a href="/run/{{ run.run_id }}" class="btn btn-primary" style="font-size:.8rem;padding:.3rem .75rem;">Resume</a>
+            {% else %}
+            <a href="/run/{{ run.run_id }}/complete" class="btn btn-ghost" style="font-size:.8rem;padding:.3rem .75rem;">View</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:3rem 1rem;background:var(--surface);border:1px solid var(--border-color);border-radius:8px;">
+    <p style="color:var(--text-muted);margin-bottom:1rem;">You haven't started any test runs yet.</p>
+    <a href="/start" class="btn btn-primary">Start your first test run</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

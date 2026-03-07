@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from auth import require_session
+from auth import require_any_session, require_session
 from database import get_db
 from models import Evidence, TestResult, TestRun, TestScript
 from schemas import SaveResultRequest
@@ -78,7 +78,7 @@ async def get_script_card(
     run_id: str,
     script_id: str,
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_any_session),
     db: Session = Depends(get_db),
 ):
     ctx = _build_card_context(db, run_id, script_id)
@@ -98,7 +98,7 @@ async def save_result(
     retest_needed: str = Form("off"),
     comments: str = Form(None),
     action: str = Form(None),
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_any_session),
     db: Session = Depends(get_db),
 ):
     try:
@@ -151,7 +151,7 @@ async def upload_evidence(
     request: Request,
     evidence_url: str = Form(None),
     file: UploadFile = File(None),
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_any_session),
     db: Session = Depends(get_db),
 ):
     result = _get_result(db, run_id, script_id)
@@ -207,7 +207,7 @@ async def delete_evidence(
     run_id: str,
     evidence_id: str,
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_any_session),
     db: Session = Depends(get_db),
 ):
     ev = db.get(Evidence, evidence_id)
