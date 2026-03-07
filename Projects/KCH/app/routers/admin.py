@@ -1,14 +1,14 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from auth import require_admin
 from database import get_db
 from importer import CSV_DIR, import_from_upload, run_import
-from models import TesterType, TestRun, TestScript
+from models import Evidence, TesterType, TestResult, TestRun, TestScript
 from shared import templates
 
 router = APIRouter(prefix="/admin")
@@ -140,3 +140,27 @@ async def toggle_tester_type(
         tt.is_active = not tt.is_active
         db.commit()
     return templates.TemplateResponse("admin/index.html", _page_context(request, db))
+
+
+@router.post("/runs/{run_id}/delete")
+async def delete_run(
+    run_id: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    run = db.get(TestRun, run_id)
+    if run:
+        results = db.query(TestResult).filter(TestResult.run_id == run_id).all()
+        for result in results:
+            for ev in db.query(Evidence).filter(Evidence.result_id == result.result_id).all():
+                if ev.file_path:
+                    try:
+                        Path(ev.file_path).unlink(missing_ok=True)
+                    except Exception:
+                        pass
+                db.delete(ev)
+            db.delete(result)
+        db.delete(run)
+        db.commit()
+    return RedirectResponse("/reports", status_code=303)

@@ -65,6 +65,11 @@ def _build_card_context(db: Session, run_id: str, script_id: str, error: str | N
         "evidence": evidence,
         "next_script_id": next_script_id,
         "error": error,
+        "pass_count": sum(1 for r in all_results if r.outcome == "Pass"),
+        "fail_count": sum(1 for r in all_results if r.outcome == "Fail"),
+        "blocked_count": sum(1 for r in all_results if r.outcome == "Blocked"),
+        "not_tested_count": sum(1 for r in all_results if r.outcome is None or r.outcome == "Not Tested"),
+        "total": len(all_results),
     }
 
 
@@ -129,21 +134,13 @@ async def save_result(
         if next_id:
             ctx = _build_card_context(db, run_id, next_id)
             ctx["request"] = request
+            ctx["saved_script_id"] = script_id
+            ctx["saved_outcome"] = validated.outcome or ""
             return templates.TemplateResponse("partials/script_card.html", ctx)
 
-    # Return updated sidebar snippet + card
     ctx = _build_card_context(db, run_id, script_id)
     ctx["request"] = request
     ctx["saved"] = True
-
-    # Also update sidebar counts via out-of-band
-    all_results = db.query(TestResult).filter(TestResult.run_id == run_id).all()
-    ctx["pass_count"] = sum(1 for r in all_results if r.outcome == "Pass")
-    ctx["fail_count"] = sum(1 for r in all_results if r.outcome == "Fail")
-    ctx["blocked_count"] = sum(1 for r in all_results if r.outcome == "Blocked")
-    ctx["not_tested_count"] = sum(1 for r in all_results if r.outcome is None or r.outcome == "Not Tested")
-    ctx["total"] = len(all_results)
-
     return templates.TemplateResponse("partials/script_card.html", ctx)
 
 

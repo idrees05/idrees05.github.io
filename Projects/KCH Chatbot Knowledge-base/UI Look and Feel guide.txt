@@ -1,0 +1,67 @@
+ADD UI/UX REQUIREMENTS (LOOK + FEEL)
+
+Overall feel:
+- Desktop-first (optimised for laptop/monitor). Mobile can be usable, but do not prioritise it.
+- Smooth, modern, “Android OS but for desktop” vibe:
+  - Clean surfaces, soft depth, rounded corners
+  - Subtle shadows and elevation
+  - Motion/transition polish (fast + minimal, not flashy)
+- Dark, muted colour palette by default.
+- Occasional “glowing” accent highlights for primary actions, selected states, and key status indicators.
+
+Design system (implement as a small internal design system in CSS):
+- Layout:
+  - Fixed left sidebar navigation (icons + labels)
+  - Top header bar for page title, search, user menu
+  - Main content area with cards and tables
+  - Use a max content width and generous spacing; avoid cramped layouts
+- Typography:
+  - Modern sans-serif (system font stack is fine)
+  - Clear hierarchy (H1/H2/body/labels)
+- Components (must be consistent across the app):
+  - Buttons: primary (glow), secondary (muted), danger (subtle red), disabled states
+  - Inputs: dark fields with clear focus ring/glow
+  - Badges/pills for statuses (colour-coded but muted)
+  - Cards for item summaries and KPI tiles
+  - Tables/lists with zebra or subtle separators, hover states, sticky headers where useful
+  - Toast notifications for save/status changes
+  - Modal dialogs for delete/confirm actions
+  - Skeleton loading states for list pages (optional but preferred)
+- Motion:
+  - Subtle transitions on hover/focus (150–250ms)
+  - Drawer/sidebar and modal animations should be smooth and quick
+  - Reduce motion support (respect prefers-reduced-motion)
+
+Colour guidance (no hard-coded brand required; keep configurable via CSS variables):
+- Base background: very dark grey (not pure black)
+- Surface/card: slightly lighter dark grey
+- Text: off-white + muted grey secondary text
+- Borders: very subtle
+- Accent (glow): one primary accent colour (e.g., cyan/teal/purple-like) used sparingly:
+  - primary buttons
+  - active nav item
+  - focus rings
+  - key highlights
+- Status colours:
+  - Pass: muted green
+  - Fail: muted red
+  - Blocked: muted amber/orange
+  - Not Tested: muted grey/blue
+Keep status colours readable and accessible against dark backgrounds.
+
+Accessibility + usability:
+- Strong contrast for text and key controls.
+- Keyboard navigation must be usable (tab order, visible focus state).
+- Large click targets in desktop UI.
+- Forms should be fast:
+  - inline validation messages
+  - sticky “Save” and “Submit” actions where appropriate
+- Admin pages should handle large lists with:
+  - search box
+  - filter chips/dropdowns
+  - pagination
+
+Implementation requirement:
+- Implement the styling as a single reusable CSS theme using CSS variables.
+- Avoid heavy frameworks; pure CSS is fine. If you use a utility framework, keep it minimal and consistent.
+- Ensure all pages (user + admin + config screens) share the same layout shell and component styles.

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — KCH Knowledge Base{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block header_actions %}
+  <a href="/admin/items/export-csv" class="btn btn-secondary btn-sm">Export CSV</a>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-value">{{ total }}</div>
+    <div class="kpi-label">Total items</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value">{{ total_users }}</div>
+    <div class="kpi-label">Active contributors</div>
+  </div>
+  {% for status in statuses %}
+  <div class="kpi-card">
+    <div class="kpi-value">{{ by_status.get(status.name, 0) }}</div>
+    <div class="kpi-label">{{ status.name }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="section-header">
+  <span class="section-title">Recent items</span>
+  <a href="/admin/items" class="btn btn-ghost btn-sm">View all →</a>
+</div>
+
+{% if recent_items %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Owner</th>
+        <th>Source</th>
+        <th>Status</th>
+        <th>Updated</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in recent_items %}
+      <tr>
+        <td>
+          <a href="/admin/items/{{ item.id }}" style="color:var(--text);font-weight:500;">{{ item.title }}</a>
+        </td>
+        <td class="text-sm text-muted">{{ item.owner.username if item.owner else "—" }}</td>
+        <td class="text-sm text-muted">{{ item.source.name if item.source else "—" }}</td>
+        <td>
+          {% if item.status %}
+          <span class="badge {{ item.status.color_class }}">{{ item.status.name }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td class="text-sm text-muted">{{ item.updated_at.strftime("%d %b %Y") if item.updated_at else "—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <h3>No items yet</h3>
+  <p>Items submitted by contributors will appear here.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} — KCH Knowledge Base{% endblock %}
+{% block page_title %}Item Detail{% endblock %}
+
+{% block header_actions %}
+  {% if can_edit %}
+  <span id="editToggleBtn" class="btn btn-secondary btn-sm" onclick="toggleEdit()">Edit item</span>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  {% if is_department_view %}
+  <a href="/app/department">Department</a>
+  {% else %}
+  <a href="/app/items">My Items</a>
+  {% endif %}
+  <span class="sep">›</span>
+  <span>{{ item.title }}</span>
+</div>
+
+{% if is_department_view and item.owner %}
+<div class="alert alert-info" style="margin-bottom:1rem;">
+  Submitted by <strong>{{ item.owner.username }}</strong>
+  {% if item.owner.department %} · {{ item.owner.department.name }}{% endif %}
+  — read-only view
+</div>
+{% endif %}
+
+{% if item.is_locked %}
+<div class="locked-banner">⚠ This item is locked by an administrator and cannot be edited.</div>
+{% endif %}
+
+<div class="detail-grid">
+  <!-- Left: content + files -->
+  <div>
+    <!-- View mode -->
+    <div id="viewMode" class="card mb-2">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <h2 style="font-size:1.2rem;font-weight:700;color:var(--text);">{{ item.title }}</h2>
+        {% if item.status %}
+        <span class="badge {{ item.status.color_class }}">{{ item.status.name }}</span>
+        {% endif %}
+      </div>
+
+      {% if item.summary %}
+      <p style="color:var(--text-muted);margin-bottom:1rem;font-size:.9rem;">{{ item.summary }}</p>
+      {% endif %}
+
+      {% if item.text_content %}
+      <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:1rem;white-space:pre-wrap;font-size:.875rem;color:var(--text);">{{ item.text_content }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Edit mode (hidden by default) -->
+    {% if can_edit %}
+    <div id="editMode" style="display:none;">
+      <form method="post" action="/app/items/{{ item.id }}" enctype="multipart/form-data">
+        <div class="card mb-2">
+          <div class="card-title">Edit item</div>
+          <div class="form-group">
+            <label class="field-label">Title *</label>
+            <input type="text" name="title" class="field-input" value="{{ item.title }}" required>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Summary</label>
+            <textarea name="summary" class="field-textarea" rows="2">{{ item.summary or '' }}</textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="field-label">Source</label>
+              <select name="source_id" class="field-select">
+                <option value="">—</option>
+                {% for s in sources %}
+                <option value="{{ s.id }}" {% if item.source_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="field-label">Department</label>
+              <select name="department_id" class="field-select">
+                <option value="">—</option>
+                {% for d in departments %}
+                <option value="{{ d.id }}" {% if item.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="field-label">Doc type</label>
+              <select name="document_type_id" class="field-select">
+                <option value="">—</option>
+                {% for dt in document_types %}
+                <option value="{{ dt.id }}" {% if item.document_type_id == dt.id %}selected{% endif %}>{{ dt.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Text content</label>
+            <textarea name="text_content" class="field-textarea" rows="8">{{ item.text_content or '' }}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="field-label">Next review date</label>
+            <input type="date" name="review_due_date" class="field-input"
+              value="{{ item.review_due_date.strftime('%Y-%m-%d') if item.review_due_date else '' }}"
+              style="max-width:220px;">
+          </div>
+          <div class="form-group">
+            <label class="field-label">Attach new files</label>
+            <input type="file" name="files" multiple class="field-input" style="padding:.5rem;">
+          </div>
+          <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+            <span class="btn btn-secondary" onclick="toggleEdit()">Cancel</span>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- Files -->
+    {% if item.files %}
+    <div class="card mb-2">
+      <div class="card-title">Attached files</div>
+      <div class="file-list">
+        {% for f in item.files %}
+        <div class="file-item">
+          <span class="file-icon">📄</span>
+          {% if file_urls.get(f.id) %}
+          <a href="{{ file_urls[f.id] }}" target="_blank" class="file-name">{{ f.original_filename }}</a>
+          {% else %}
+          <span class="file-name">{{ f.original_filename }}</span>
+          {% endif %}
+          <span class="file-size">{{ (f.file_size / 1024) | round(1) }} KB</span>
+          {% if can_edit %}
+          <form method="post" action="/app/items/{{ item.id }}/files/{{ f.id }}/delete" style="margin:0;">
+            <button type="submit" class="btn btn-danger btn-sm"
+              onclick="return confirm('Delete this file?')">×</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: meta + history -->
+  <div>
+    <div class="card mb-2">
+      <div class="card-title">Metadata</div>
+      <div class="meta-list">
+        <div class="meta-row">
+          <span class="meta-key">Status</span>
+          <span class="meta-val">
+            {% if item.status %}
+            <span class="badge {{ item.status.color_class }}">{{ item.status.name }}</span>
+            {% else %}—{% endif %}
+          </span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Source</span>
+          <span class="meta-val">{{ item.source.name if item.source else "—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Department</span>
+          <span class="meta-val">{{ item.department.name if item.department else "—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Doc type</span>
+          <span class="meta-val">{{ item.document_type.name if item.document_type else "—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Submitted</span>
+          <span class="meta-val text-sm">{{ item.created_at.strftime("%d %b %Y %H:%M") if item.created_at else "—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Updated</span>
+          <span class="meta-val text-sm">{{ item.updated_at.strftime("%d %b %Y %H:%M") if item.updated_at else "—" }}</span>
+        </div>
+        {% if item.review_due_date %}
+        <div class="meta-row">
+          <span class="meta-key">Review due</span>
+          <span class="meta-val text-sm">{{ item.review_due_date.strftime("%d %b %Y") }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── Review timer ring ──────────────────────────────────────── -->
+    {% if ring %}
+    <div class="card mb-2">
+      <div class="card-title">Review timer</div>
+      <div class="review-ring-container">
+        <div class="review-ring-svg-wrap">
+          <svg class="review-ring-svg" viewBox="0 0 130 130" aria-label="{{ ring.label }}">
+            <circle class="ring-track" cx="65" cy="65" r="54"/>
+            <circle class="ring-progress" cx="65" cy="65" r="54"
+              style="stroke: {{ ring.color }}; --ring-offset: {{ ring.offset }}; stroke-dasharray: {{ ring.circumference }}; stroke-dashoffset: {{ ring.circumference }};"
+            />
+          </svg>
+          <div class="review-ring-center">
+            {% if ring.overdue %}
+              <span class="ring-days" style="color:var(--danger);">{{ ring.days_remaining | abs }}</span>
+              <span class="ring-unit" style="color:var(--danger);">days over</span>
+            {% else %}
+              <span class="ring-days">{{ ring.days_remaining }}</span>
+              <span class="ring-unit">days left</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="review-ring-meta">
+          <div style="font-size:.875rem;color:var(--text);font-weight:600;margin-bottom:.25rem;">{{ ring.label }}</div>
+          <div style="font-size:.78rem;color:var(--text-muted);">Due {{ ring.due_date }}</div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:.2rem;">{{ ring.pct }}% time remaining</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-title">Status history</div>
+      {% if item.status_history %}
+      <div class="history-list">
+        {% for h in item.status_history | reverse %}
+        <div class="history-item">
+          <div class="history-dot"></div>
+          <div class="history-content">
+            <div class="history-line">
+              {% if h.from_status %}
+              <span class="badge {{ h.from_status.color_class }}">{{ h.from_status.name }}</span>
+              <span style="color:var(--text-muted)"> → </span>
+              {% endif %}
+              <span class="badge {{ h.to_status.color_class }}">{{ h.to_status.name }}</span>
+            </div>
+            <div class="history-meta">
+              {{ h.created_at.strftime("%d %b %Y %H:%M") }}
+              {% if h.changed_by %} · {{ h.changed_by.username }}{% endif %}
+            </div>
+            {% if h.note %}
+            <div class="history-note">{{ h.note }}</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted text-sm">No history yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function toggleEdit() {
+    const view = document.getElementById('viewMode');
+    const edit = document.getElementById('editMode');
+    const btn  = document.getElementById('editToggleBtn');
+    if (!edit) return;
+    const editing = edit.style.display !== 'none';
+    view.style.display = editing ? '' : 'none';
+    edit.style.display = editing ? 'none' : '';
+    btn.textContent = editing ? 'Edit item' : 'Cancel';
+  }
+</script>
+{% endblock %}

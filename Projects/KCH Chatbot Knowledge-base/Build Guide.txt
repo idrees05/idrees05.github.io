@@ -1,0 +1,213 @@
+ROLE
+You are Claude Code acting as a senior full-stack engineer and systems designer. Build a web app in Python with server-rendered HTML/CSS (minimal JS) to manage knowledge-base contributions for a Copilot chatbot. You must plan and implement the codebase (DB schema, auth, routes, templates, admin tools, exports) so it works end-to-end.
+
+PROBLEM CONTEXT
+We are building a Copilot chatbot. Knowledge content is being collected inconsistently and we need one internal system to:
+- Let staff submit proposed knowledge items/documents
+- Track the status of those items through review → published
+- Provide contributors visibility of their own submissions and statuses
+- Provide admin full oversight and operational controls
+
+ACCESS MODEL (NON-NEGOTIABLE)
+- Two roles: Admin and Normal User.
+- Users can ONLY access the system if Admin creates an account for them (username + password).
+- Normal Users must never see admin pages or any other users’ data.
+- Admin can see everything across all departments and users.
+
+AUTH / SECURITY REQUIREMENTS
+- Secure password hashing (bcrypt or argon2). Never store plain-text passwords.
+- Session-based login (cookie sessions).
+- Admin-only routes must be strictly protected (403 for non-admin).
+- Basic login rate limiting.
+- Audit log key admin actions (user created/disabled, department changes, source changes, status changes, exports).
+
+CORE CONFIGURABLE ENTITIES (ADMIN-MANAGED; MUST REFLECT ON USER SIDE)
+These are dynamic and MUST be editable by Admin at any time. Changes must immediately reflect in user dropdowns and filters.
+
+1) Departments
+Admin must be able to:
+- Add a department
+- Edit a department name
+- Delete a department
+
+Behaviour requirements:
+- When creating or editing a user, Admin assigns them a department.
+- All users assigned to a department should see:
+  - Their own items tagged with that department
+  - Filters/dropdowns that include that department name
+- If a department is renamed, all existing records must reflect the new name (via FK relationship; do not copy strings everywhere).
+- If a department is deleted:
+  - Prevent deletion if it’s in use (recommended), OR allow deletion but require reassignment of users/items first.
+  - In either case, handle safely and explicitly (no silent data loss).
+
+2) Document Types
+Examples: Policy, Procedure, Guidance, FAQ, Form (these are examples only).
+Admin must be able to:
+- Add a document type
+- Edit a document type name
+- Delete a document type
+
+Behaviour requirements:
+- User “New Item” form must show document types from the live database.
+- If a type is removed, users must no longer be able to select it.
+- Existing items keep their type via FK (same safe deletion rules as departments).
+
+3) Knowledge Base Sources
+Currently there are 2 sources (SharePoint + HR Portal), but this can change.
+Admin must be able to:
+- Add a source
+- Edit a source name/description
+- Delete a source
+
+Behaviour requirements:
+- User “New Item” form must show sources from the live database.
+- Users must be able to submit items to any active source.
+- Each source can have its own workflow/status pipeline (see below). The system must support adding new sources without requiring code changes for basic operation.
+
+KNOWLEDGE ITEM MODEL
+A “Knowledge Item” represents a proposed addition/change to a knowledge base source.
+
+Each item must store:
+- Source (FK to sources)
+- Department (FK to departments)
+- Document Type (FK to document_types)
+- Title (required)
+- Summary/Description (optional)
+- Proposed content:
+  - File upload(s) and/or text content (support both)
+- Owner (FK to users)
+- Status (see workflow below)
+- Status history (who changed it, when, note)
+- Created/updated timestamps
+
+WORKFLOWS / STATUSES
+Because sources may differ, implement workflows in a data-driven way:
+- Each source has a set of statuses (admin-manageable or seeded defaults).
+- Minimum universal statuses (baseline):
+  - Submitted
+  - Under Review
+  - In Progress
+  - Rejected
+  - Complete/Published
+
+Rules:
+- Only Admin can set Rejected or Complete/Published.
+- Users can edit their item while it is in Submitted/Under Review/In Progress unless Admin locks it.
+- Every status change must create a history record with timestamp + actor + note.
+
+USER EXPERIENCE (NORMAL USER)
+Users see ONLY their own items.
+
+Pages:
+- User dashboard: counts by status + quick links
+- “My Items” list with filters:
+  - source, department, document type, status, date range
+- Item detail view:
+  - all metadata
+  - uploaded files / text content
+  - current status + status history
+  - admin notes (e.g., rejection reason)
+
+Create new item flow:
+- Select Source (from DB)
+- Select Department (from DB)
+- Select Document Type (from DB)
+- Enter Title
+- Upload file(s) and/or paste content
+- Submit
+
+ADMIN EXPERIENCE
+Admin must be able to:
+1) Manage Users
+- Create users (username + initial password)
+- Assign department
+- Reset password
+- Disable user
+
+2) Manage Config (THE MAIN NEW REQUIREMENT)
+- Manage Departments (add/edit/delete)
+- Manage Document Types (add/edit/delete)
+- Manage Sources (add/edit/delete)
+- (Optional) Manage Source Status Pipelines (add/edit/delete statuses per source)
+
+3) Manage Items
+- View all items across all users
+- Filter by source/department/type/status/owner/date
+- Open an item and:
+  - change status with a note
+  - download attachments
+  - add internal admin notes (optionally visible to user)
+
+4) Dashboard
+- KPIs: open items, items by status, overdue/stale (optional), new submissions
+- Queues: Submitted, Under Review, In Progress, Rejected, Complete
+
+EXPORTS (OPTIONAL BUT USEFUL)
+- CSV export of items (with joined metadata: source, dept, type, owner, status)
+- CSV export of status history
+
+DATA INTEGRITY REQUIREMENTS
+- Use relational FKs for department/type/source/status.
+- Renames must propagate automatically (FK joins).
+- Deletions must be safe:
+  - either block deletion if in use, or enforce reassignment before deletion.
+- No silent orphaning.
+
+TECH STACK (KEEP SIMPLE)
+- Python backend: FastAPI preferred (Flask acceptable).
+- Server-rendered templates (Jinja2) + clean CSS.
+- DB: SQLite for dev; Postgres-ready schema for prod.
+- ORM: SQLAlchemy + migrations (Alembic).
+- File uploads stored on disk with metadata in DB.
+
+MINIMUM ROUTES / PAGES
+Auth:
+- GET/POST /login
+- POST /logout
+
+User:
+- GET /app
+- GET /app/items
+- GET/POST /app/items/new
+- GET/POST /app/items/{id}
+
+Admin:
+- GET /admin
+- GET /admin/items
+- GET/POST /admin/items/{id}/status
+- GET /admin/users
+- GET/POST /admin/users/new
+- POST /admin/users/{id}/reset-password
+- POST /admin/users/{id}/disable
+
+Admin Config:
+- GET/POST /admin/departments
+- POST /admin/departments/{id}/edit
+- POST /admin/departments/{id}/delete
+
+- GET/POST /admin/document-types
+- POST /admin/document-types/{id}/edit
+- POST /admin/document-types/{id}/delete
+
+- GET/POST /admin/sources
+- POST /admin/sources/{id}/edit
+- POST /admin/sources/{id}/delete
+
+(If implementing data-driven statuses)
+- GET/POST /admin/sources/{id}/statuses
+- POST /admin/statuses/{id}/edit
+- POST /admin/statuses/{id}/delete
+
+DELIVERABLES YOU MUST PRODUCE
+1) DB schema (tables + key fields + FK relationships).
+2) Working auth with admin vs user role separation.
+3) Admin config management UI for Departments, Document Types, Sources (add/edit/delete) that updates user-side dropdowns immediately.
+4) End-to-end item creation and tracking with status history.
+5) Admin dashboard + item management.
+
+VERIFICATION PACK (MUST DO)
+- Admin creates Department “HR Ops” and Document Type “Policy”; confirm user sees them in New Item dropdown.
+- Admin renames “HR Ops” to “HR Operations”; confirm it updates everywhere without breaking existing items.
+- Admin deletes a Document Type that is in use; confirm the system blocks deletion or forces reassignment.
+- Admin adds a new Source; confirm users can create items against it.
+- Confirm normal user cannot access /admin or other users’ items (403).

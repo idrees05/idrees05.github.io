@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Users — KCH Knowledge Base{% endblock %}
+{% block page_title %}Users{% endblock %}
+
+{% block header_actions %}
+  <a href="/admin/users/new" class="btn btn-primary btn-sm">+ New user</a>
+{% endblock %}
+
+{% block content %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Department</th>
+        <th>Status</th>
+        <th>Last login</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td style="font-weight:500;">{{ user.username }}</td>
+        <td>
+          {% if user.is_admin %}
+          <span class="badge badge-admin">Admin</span>
+          {% else %}
+          <span class="text-muted text-sm">Contributor</span>
+          {% endif %}
+        </td>
+        <td class="text-sm text-muted">{{ user.department.name if user.department else "—" }}</td>
+        <td>
+          {% if user.is_active %}
+          <span class="badge badge-active">Active</span>
+          {% else %}
+          <span class="badge badge-inactive">Disabled</span>
+          {% endif %}
+        </td>
+        <td class="text-sm text-muted">
+          {{ user.last_login.strftime("%d %b %Y %H:%M") if user.last_login else "Never" }}
+        </td>
+        <td>
+          <div style="display:flex;gap:.4rem;align-items:center;">
+            <!-- Reset password (inline form in modal) -->
+            <button class="btn btn-secondary btn-sm"
+              onclick="showResetModal({{ user.id }}, '{{ user.username }}')">
+              Reset pwd
+            </button>
+
+            <!-- Toggle active -->
+            {% if not user.is_admin %}
+            <button class="btn btn-ghost btn-sm"
+              onclick="confirmAction(
+                '{% if user.is_active %}Disable{% else %}Enable{% endif %} user',
+                '{% if user.is_active %}Disable{% else %}Enable{% endif %} {{ user.username }}?',
+                '/admin/users/{{ user.id }}/toggle'
+              )">
+              {% if user.is_active %}Disable{% else %}Enable{% endif %}
+            </button>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Reset password modal -->
+<div class="modal-backdrop" id="resetModal">
+  <div class="modal">
+    <div class="modal-title">Reset password</div>
+    <div class="modal-body" id="resetModalBody">Set a new password for this user.</div>
+    <form id="resetForm" method="post">
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label class="field-label">New password</label>
+        <input type="password" name="new_password" class="field-input"
+          placeholder="Min. 8 characters" minlength="8" required>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeResetModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Reset password</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function showResetModal(userId, username) {
+    document.getElementById('resetModalBody').textContent = `Set a new password for ${username}.`;
+    document.getElementById('resetForm').action = `/admin/users/${userId}/reset-password`;
+    document.getElementById('resetModal').classList.add('open');
+  }
+
+  function closeResetModal() {
+    document.getElementById('resetModal').classList.remove('open');
+  }
+
+  document.getElementById('resetModal').addEventListener('click', function(e) {
+    if (e.target === this) closeResetModal();
+  });
+</script>
+{% endblock %}

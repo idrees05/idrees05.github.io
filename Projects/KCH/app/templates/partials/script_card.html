@@ -212,17 +212,35 @@
 <script>
   // Initialise outcome-dependent fields for this card
   (function() {
-    const outcome = document.querySelector(
-      'input[name="outcome"]:checked'
-    );
+    const outcome = document.querySelector('input[name="outcome"]:checked');
     if (outcome) handleOutcomeChange(outcome.value, '{{ script.script_id }}');
   })();
+
   // Hide save banner after 3s
   const banner = document.getElementById('save-banner');
   if (banner) setTimeout(() => banner.remove(), 3000);
 
-  // Update sidebar badge and active state for this script
-  updateSidebarItem('{{ script.script_id }}', '{{ result.outcome or '' if result else '' }}');
+  // Sync sidebar counts and progress bar
+  (function() {
+    const pass = {{ pass_count }}, fail = {{ fail_count }}, blocked = {{ blocked_count }}, nt = {{ not_tested_count }}, total = {{ total }};
+    const done = pass + fail + blocked;
+    const el = id => document.getElementById(id);
+    if (el('ct-pass'))    el('ct-pass').textContent    = pass;
+    if (el('ct-fail'))    el('ct-fail').textContent    = fail;
+    if (el('ct-blocked')) el('ct-blocked').textContent = blocked;
+    if (el('ct-nt'))      el('ct-nt').textContent      = nt;
+    const bar = el('progress-bar'), lbl = el('progress-label');
+    if (bar && total > 0) bar.style.width = Math.round(done / total * 100) + '%';
+    if (lbl && total > 0) lbl.textContent = done + ' / ' + total + ' completed';
+  })();
+
+  // When Save & Next was used, update the just-saved script badge in the sidebar
+  {% if saved_script_id is defined %}
+  updateSidebarItem('{{ saved_script_id }}', '{{ saved_outcome }}');
+  {% endif %}
+
+  // Update current script badge and highlight it
+  updateSidebarItem('{{ script.script_id }}', '{{ result.outcome or "" if result else "" }}');
   setActive('{{ script.script_id }}');
 </script>
 {% endif %}

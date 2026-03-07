@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error {{ code }} — KCH Knowledge Base</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="login-body">
+  <div class="login-card" style="text-align:center">
+    <div style="font-size:3rem;color:var(--text-muted);margin-bottom:1rem;">{{ code }}</div>
+    <h1 class="login-heading" style="font-size:1.2rem;">{{ message }}</h1>
+    <div style="margin-top:1.5rem;">
+      <a href="javascript:history.back()" class="btn btn-secondary">Go back</a>
+      <a href="/app" class="btn btn-ghost">Dashboard</a>
+    </div>
+  </div>
+</body>
+</html>

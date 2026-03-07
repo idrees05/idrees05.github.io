@@ -74,29 +74,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // HTMX: after saving a result, update progress bar
-  document.body.addEventListener('htmx:afterSwap', (evt) => {
-    const passEl = document.getElementById('ct-pass');
-    const failEl = document.getElementById('ct-fail');
-    const blockedEl = document.getElementById('ct-blocked');
-    const ntEl = document.getElementById('ct-nt');
-    const progressBar = document.getElementById('progress-bar');
-    const progressLabel = document.getElementById('progress-label');
-
-    if (!passEl) return;
-
-    const pass = parseInt(passEl.textContent) || 0;
-    const fail = parseInt(failEl?.textContent) || 0;
-    const blocked = parseInt(blockedEl?.textContent) || 0;
-    const nt = parseInt(ntEl?.textContent) || 0;
-    const total = pass + fail + blocked + nt;
-    const done = pass + fail + blocked;
-
-    if (progressBar && total > 0) {
-      progressBar.style.width = `${Math.round(done / total * 100)}%`;
-    }
-    if (progressLabel && total > 0) {
-      progressLabel.textContent = `${done} / ${total} completed`;
-    }
-  });
 });

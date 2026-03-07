@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}KCH Knowledge Base{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── SIDEBAR ────────────────────────────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <div class="logo-icon">KB</div>
+        <div class="logo-text">
+          KCH Copilot
+          <div class="logo-sub">Knowledge Base</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      {% if is_admin(request) %}
+        <div class="nav-label">Admin</div>
+        <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}">
+          <span class="nav-icon">⬚</span> Dashboard
+        </a>
+        <a href="/admin/items" class="nav-item {% if '/admin/items' in request.url.path %}active{% endif %}">
+          <span class="nav-icon">◫</span> All Items
+        </a>
+        <a href="/admin/users" class="nav-item {% if '/admin/users' in request.url.path %}active{% endif %}">
+          <span class="nav-icon">◎</span> Users
+        </a>
+        <a href="/admin/config" class="nav-item {% if '/admin/config' in request.url.path %}active{% endif %}">
+          <span class="nav-icon">⚙</span> Config
+        </a>
+        <div class="nav-divider"></div>
+        <div class="nav-label">My Work</div>
+      {% endif %}
+
+      <a href="/app/dashboard" class="nav-item {% if '/app/dashboard' in request.url.path %}active{% endif %}">
+        <span class="nav-icon">⬚</span> My Dashboard
+      </a>
+      <a href="/app/items" class="nav-item {% if '/app/items' in request.url.path and '/app/items/new' not in request.url.path and '/app/department' not in request.url.path %}active{% endif %}">
+        <span class="nav-icon">◫</span> My Items
+      </a>
+      <a href="/app/department" class="nav-item {% if '/app/department' in request.url.path %}active{% endif %}">
+        <span class="nav-icon">◈</span> Department
+      </a>
+      <a href="/app/items/new" class="nav-item {% if '/app/items/new' in request.url.path %}active{% endif %}">
+        <span class="nav-icon">+</span> New Item
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">{{ current_username(request)[:1] | upper }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ current_username(request) }}</div>
+          <div class="user-role">{% if is_admin(request) %}Admin{% else %}Contributor{% endif %}</div>
+        </div>
+        <a href="/logout" class="logout-btn" title="Sign out">↪</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN WRAP ──────────────────────────────────────────────────────── -->
+  <div class="main-wrap">
+    <header class="top-header">
+      <span class="page-title">{% block page_title %}{% endblock %}</span>
+      {% block header_actions %}{% endblock %}
+    </header>
+
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<!-- ── TOAST ───────────────────────────────────────────────────────────────── -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── MODAL (global confirm) ─────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="confirmModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Confirm action</div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <form id="modalForm" method="post">
+        <button type="submit" class="btn btn-danger" id="modalConfirmBtn">Confirm</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Toasts ──────────────────────────────────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  const msgParam = params.get('msg');
+  const errParam = params.get('error');
+
+  function showToast(text, type) {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    t.textContent = text;
+    c.appendChild(t);
+    setTimeout(() => {
+      t.style.animation = 'slideOut .2s ease forwards';
+      setTimeout(() => t.remove(), 200);
+    }, 4000);
+  }
+
+  if (msgParam) showToast(msgParam, 'success');
+  if (errParam) showToast(errParam, 'error');
+
+  // ── Modal ───────────────────────────────────────────────────────────────────
+  function confirmAction(title, body, action) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').textContent = body;
+    document.getElementById('modalForm').action = action;
+    document.getElementById('confirmModal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('confirmModal').classList.remove('open');
+  }
+
+  document.getElementById('confirmModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // ── Tabs ────────────────────────────────────────────────────────────────────
+  function initTabs() {
+    const urlTab = new URLSearchParams(window.location.search).get('tab');
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + target)?.classList.add('active');
+      });
+    });
+    // Activate from URL param or first
+    const activateTab = urlTab || document.querySelector('.tab-btn')?.dataset.tab;
+    if (activateTab) {
+      const btn = document.querySelector(`[data-tab="${activateTab}"]`);
+      if (btn) btn.click();
+    }
+  }
+  initTabs();
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

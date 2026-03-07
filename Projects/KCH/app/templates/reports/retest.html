@@ -1,49 +1,197 @@
+<style>
+  /* ===== REPORTS DARK THEME ===== */
+  .main-content { background: #0d1117; }
+  .reports-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+    color: #e6edf3;
+  }
+
+  /* Header */
+  .rp-header { display: flex; align-items: center; gap: .875rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .rp-back { font-size: .875rem; color: #58a6ff; text-decoration: none; transition: color .15s; flex-shrink: 0; }
+  .rp-back:hover { color: #79c0ff; text-decoration: none; }
+  .rp-title { font-size: 1.875rem; font-weight: 700; color: #e6edf3; letter-spacing: -.03em; line-height: 1.2; }
+  .rp-subtitle { font-size: .875rem; color: #7d8590; margin-top: .25rem; }
+  .rp-actions { margin-left: auto; display: flex; gap: .625rem; align-items: center; }
+
+  /* Buttons */
+  .rp-btn {
+    display: inline-flex; align-items: center; gap: .375rem;
+    padding: .5rem 1.125rem;
+    border-radius: 6px; font-size: .875rem; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent;
+    text-decoration: none; transition: all .15s; white-space: nowrap;
+    font-family: var(--font);
+  }
+  .rp-btn:hover { text-decoration: none; }
+  .rp-btn-primary { background: #238636; color: #fff; border-color: rgba(240,246,252,.1); }
+  .rp-btn-primary:hover { background: #2ea043; }
+  .rp-btn-secondary { background: #21262d; color: #c9d1d9; border-color: #30363d; }
+  .rp-btn-secondary:hover { background: #30363d; border-color: #8b949e; color: #e6edf3; }
+  .rp-btn-ghost { background: transparent; color: #58a6ff; border-color: #30363d; }
+  .rp-btn-ghost:hover { background: rgba(88,166,255,.08); border-color: #58a6ff; }
+  .rp-btn-danger { background: transparent; color: #f85149; border-color: #30363d; }
+  .rp-btn-danger:hover { background: rgba(248,81,73,.1); border-color: rgba(248,81,73,.4); }
+  .rp-btn-sm { padding: .3rem .75rem; font-size: .8125rem; }
+
+  /* Filter bar */
+  .rp-filters {
+    display: flex; gap: .625rem; align-items: center; flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+    padding: .875rem 1.25rem;
+  }
+  .rp-select {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+    color: #e6edf3; padding: .4375rem .75rem; font-size: .875rem; font-family: var(--font);
+    transition: border-color .15s;
+  }
+  .rp-select:focus { outline: none; border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88,166,255,.12); }
+  .rp-select option { background: #161b22; }
+
+  /* Table */
+  .rp-table-wrap { background: #161b22; border: 1px solid #30363d; border-radius: 10px; overflow: hidden; }
+  .rp-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  .rp-table th {
+    background: #0d1117; color: #7d8590; padding: .625rem 1rem;
+    text-align: left; font-size: .7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid #21262d;
+  }
+  .rp-table td { padding: .75rem 1rem; color: #c9d1d9; border-bottom: 1px solid #21262d; vertical-align: middle; }
+  .rp-table tr:last-child td { border-bottom: none; }
+  .rp-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+  .rp-table .rp-detail-row td { background: rgba(210,153,34,.05) !important; font-size: .85rem; color: #b9c1c9; }
+
+  /* Code */
+  .rp-code {
+    background: #0d1117; border: 1px solid #30363d;
+    padding: 2px 7px; border-radius: 4px;
+    font-size: .8rem; color: #79c0ff; font-family: ui-monospace, monospace;
+  }
+
+  /* Outcome pills */
+  .rp-pill {
+    display: inline-flex; align-items: center;
+    padding: .2rem .65rem; border-radius: 99px;
+    font-size: .75rem; font-weight: 700; border: 1px solid;
+  }
+  .rp-pass    { background: rgba(63,185,80,.12);   color: #3fb950; border-color: rgba(63,185,80,.25); }
+  .rp-fail    { background: rgba(248,81,73,.12);   color: #f85149; border-color: rgba(248,81,73,.25); }
+  .rp-blocked { background: rgba(210,153,34,.12);  color: #d29922; border-color: rgba(210,153,34,.25); }
+  .rp-nt      { background: rgba(139,148,158,.1);  color: #8b949e; border-color: rgba(139,148,158,.2); }
+
+  /* Status badges */
+  .rp-status {
+    display: inline-flex; align-items: center;
+    padding: .2rem .65rem; border-radius: 99px;
+    font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border: 1px solid;
+  }
+  .rp-submitted   { background: rgba(63,185,80,.12);  color: #3fb950; border-color: rgba(63,185,80,.25); }
+  .rp-in-progress { background: rgba(88,166,255,.1);  color: #58a6ff; border-color: rgba(88,166,255,.2); }
+
+  /* Meta block */
+  .rp-meta { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+  .rp-meta-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .625rem 2rem; }
+  .rp-meta-list > div { display: flex; gap: .625rem; align-items: baseline; }
+  .rp-meta-dt { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #7d8590; min-width: 70px; }
+  .rp-meta-dd { font-size: .875rem; color: #c9d1d9; }
+
+  /* Summary stat cards */
+  .rp-summary { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .rp-stat {
+    flex: 1; min-width: 100px;
+    background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+    padding: 1.25rem; display: flex; flex-direction: column; align-items: center;
+    border-top: 3px solid #30363d;
+  }
+  .rp-stat.pass    { border-top-color: #3fb950; }
+  .rp-stat.fail    { border-top-color: #f85149; }
+  .rp-stat.blocked { border-top-color: #d29922; }
+  .rp-stat.nt      { border-top-color: #8b949e; }
+  .rp-stat-value { font-size: 2rem; font-weight: 800; letter-spacing: -.04em; font-family: ui-monospace, monospace; color: #e6edf3; line-height: 1; }
+  .rp-stat.pass    .rp-stat-value { color: #3fb950; }
+  .rp-stat.fail    .rp-stat-value { color: #f85149; }
+  .rp-stat.blocked .rp-stat-value { color: #d29922; }
+  .rp-stat-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: #7d8590; margin-top: .375rem; font-weight: 600; }
+
+  /* Failure groups */
+  .rp-group { margin-bottom: 2rem; }
+  .rp-group-title { font-size: .9375rem; font-weight: 700; color: #e6edf3; margin-bottom: .875rem; display: flex; align-items: center; gap: .625rem; }
+  .rp-group-count { background: rgba(248,81,73,.12); color: #f85149; border: 1px solid rgba(248,81,73,.25); font-size: .7rem; padding: .15rem .55rem; border-radius: 99px; font-weight: 700; }
+
+  /* Mini pass bar */
+  .rp-bar-wrap { display: inline-block; width: 80px; height: 6px; background: rgba(248,81,73,.2); border-radius: 99px; overflow: hidden; vertical-align: middle; margin-right: .5rem; }
+  .rp-bar { background: #3fb950; height: 100%; border-radius: 99px; }
+
+  /* Text helpers */
+  .rp-text-pass    { color: #3fb950; font-weight: 700; }
+  .rp-text-fail    { color: #f85149; font-weight: 700; }
+  .rp-text-blocked { color: #d29922; font-weight: 700; }
+  .rp-text-muted   { color: #7d8590; }
+
+  /* Empty */
+  .rp-empty { text-align: center; padding: 4rem 2rem; color: #7d8590; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .rp-summary { gap: .625rem; }
+    .rp-meta-list { grid-template-columns: 1fr; }
+    .reports-page { padding: 1.5rem 1.25rem 3rem; }
+  }
+</style>
 {% extends "base.html" %}
 {% block title %}Retest List — KCH UAT{% endblock %}
 
 {% block content %}
-<div class="page-container">
-  <div class="page-header">
-    <a href="/reports" class="back-link">&larr; Reports</a>
-    <h1 class="page-title">Retest List</h1>
-    <p class="page-subtitle">{{ total }} scripts flagged for retest</p>
+<div class="reports-page">
+  <div class="rp-header">
+    <a href="/reports" class="rp-back">&#8592; Reports</a>
+    <div>
+      <h1 class="rp-title">Retest List</h1>
+      <p class="rp-subtitle">{{ total }} scripts flagged for retest</p>
+    </div>
   </div>
 
   {% if retests %}
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Script</th>
-        <th>Title</th>
-        <th>Category</th>
-        <th>Outcome</th>
-        <th>Tester</th>
-        <th>Env</th>
-        <th>Failure category</th>
-        <th>What happened</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in retests %}
-      {% set script = scripts.get(r.script_id) %}
-      {% set run = runs.get(r.run_id) %}
-      <tr>
-        <td><code>{{ r.script_id }}</code></td>
-        <td>{{ script.title if script else '—' }}</td>
-        <td>{{ script.category if script else '—' }}</td>
-        <td><span class="outcome-pill outcome-{{ (r.outcome or 'none')|lower|replace(' ', '-') }}">{{ r.outcome or '—' }}</span></td>
-        <td>{{ run.tester_name if run else '—' }}</td>
-        <td>{{ run.environment if run else '—' }}</td>
-        <td>{{ r.failure_category or '—' }}</td>
-        <td>{{ r.happened or '—' }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <div class="empty-state">
-    <p>No scripts flagged for retest.</p>
+  <div class="rp-table-wrap">
+    <table class="rp-table">
+      <thead>
+        <tr>
+          <th>Script</th><th>Title</th><th>Category</th>
+          <th>Outcome</th><th>Tester</th><th>Env</th>
+          <th>Failure Category</th><th>What happened</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in retests %}
+        {% set script = scripts.get(r.script_id) %}
+        {% set run = runs.get(r.run_id) %}
+        <tr>
+          <td><span class="rp-code">{{ r.script_id }}</span></td>
+          <td>{{ script.title if script else '&#8212;' }}</td>
+          <td class="rp-text-muted">{{ script.category if script else '&#8212;' }}</td>
+          <td>
+            <span class="rp-pill
+              {%- if r.outcome == 'Pass' %} rp-pass
+              {%- elif r.outcome == 'Fail' %} rp-fail
+              {%- elif r.outcome == 'Blocked' %} rp-blocked
+              {%- else %} rp-nt{%- endif %}">
+              {{ r.outcome or '&#8212;' }}
+            </span>
+          </td>
+          <td style="color:#c9d1d9">{{ run.tester_name if run else '&#8212;' }}</td>
+          <td><span style="font-family:ui-monospace,monospace;font-size:.8rem">{{ run.environment if run else '&#8212;' }}</span></td>
+          <td class="rp-text-muted">{{ r.failure_category or '&#8212;' }}</td>
+          <td class="rp-text-muted">{{ r.happened or '&#8212;' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  {% else %}
+  <div class="rp-empty"><p>No scripts flagged for retest.</p></div>
   {% endif %}
 </div>
 {% endblock %}

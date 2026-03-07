@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}New User — KCH Knowledge Base{% endblock %}
+{% block page_title %}Create User{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="/admin/users">Users</a>
+  <span class="sep">›</span>
+  <span>New user</span>
+</div>
+
+<div style="max-width:480px;">
+  <div class="card">
+    <div class="card-title">User details</div>
+    <form method="post" action="/admin/users/new">
+
+      <div class="form-group">
+        <label for="username" class="field-label">Username <span style="color:var(--danger)">*</span></label>
+        <input type="text" id="username" name="username" class="field-input"
+          value="{{ form.get('username', '') }}" placeholder="e.g. jsmith" autofocus required>
+        {% if errors.username %}<div class="field-error">{{ errors.username }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="field-label">Initial password <span style="color:var(--danger)">*</span></label>
+        <input type="password" id="password" name="password" class="field-input"
+          placeholder="Min. 8 characters" minlength="8" required>
+        {% if errors.password %}<div class="field-error">{{ errors.password }}</div>{% endif %}
+        <div class="field-hint">User should change this after first login.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="department_id" class="field-label">Department</label>
+        <select id="department_id" name="department_id" class="field-select">
+          <option value="">— No department —</option>
+          {% for d in departments %}
+          <option value="{{ d.id }}" {% if form.get('department_id') == d.id %}selected{% endif %}>{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="field-checkbox">
+          <input type="checkbox" name="is_admin" value="true" {% if form.get('is_admin') %}checked{% endif %}>
+          Grant admin access
+        </label>
+      </div>
+
+      <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+        <a href="/admin/users" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">Create user</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

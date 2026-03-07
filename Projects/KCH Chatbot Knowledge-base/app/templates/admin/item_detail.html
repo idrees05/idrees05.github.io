@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} — Admin — KCH Knowledge Base{% endblock %}
+{% block page_title %}Item Detail (Admin){% endblock %}
+
+{% block header_actions %}
+  <form method="post" action="/admin/items/{{ item.id }}/lock" style="margin:0;">
+    <button type="submit" class="btn btn-secondary btn-sm">
+      {% if item.is_locked %}🔓 Unlock{% else %}🔒 Lock{% endif %}
+    </button>
+  </form>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="/admin/items">All Items</a>
+  <span class="sep">›</span>
+  <span>{{ item.title }}</span>
+</div>
+
+{% if item.is_locked %}
+<div class="locked-banner">⚠ This item is locked. Contributors cannot edit it.</div>
+{% endif %}
+
+<div class="detail-grid">
+  <!-- Left: content + files + status change -->
+  <div>
+    <div class="card mb-2">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <h2 style="font-size:1.2rem;font-weight:700;color:var(--text);">{{ item.title }}</h2>
+        {% if item.status %}
+        <span class="badge {{ item.status.color_class }}">{{ item.status.name }}</span>
+        {% endif %}
+      </div>
+
+      {% if item.summary %}
+      <p style="color:var(--text-muted);margin-bottom:1rem;font-size:.9rem;">{{ item.summary }}</p>
+      {% endif %}
+
+      {% if item.text_content %}
+      <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:1rem;white-space:pre-wrap;font-size:.875rem;color:var(--text);">{{ item.text_content }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Status change -->
+    <div class="card mb-2">
+      <div class="card-title">Change status</div>
+      <form method="post" action="/admin/items/{{ item.id }}/status">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="field-label">New status</label>
+            <select name="status_id" class="field-select" required>
+              <option value="">— Select status —</option>
+              {% for s in statuses %}
+              <option value="{{ s.id }}" {% if item.status_id == s.id %}selected{% endif %}>
+                {{ s.name }}{% if s.admin_only %} (admin only){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Note (optional)</label>
+          <textarea name="note" class="field-textarea" rows="2"
+            placeholder="Reason for status change, feedback for contributor…"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Update status</button>
+      </form>
+    </div>
+
+    <!-- Files -->
+    {% if item.files %}
+    <div class="card mb-2">
+      <div class="card-title">Attached files</div>
+      <div class="file-list">
+        {% for f in item.files %}
+        <div class="file-item">
+          <span class="file-icon">📄</span>
+          {% if file_urls.get(f.id) %}
+          <a href="{{ file_urls[f.id] }}" target="_blank" class="file-name">{{ f.original_filename }}</a>
+          {% else %}
+          <span class="file-name">{{ f.original_filename }}</span>
+          {% endif %}
+          <span class="file-size">{{ (f.file_size / 1024) | round(1) }} KB</span>
+          <button class="btn btn-danger btn-sm"
+            onclick="confirmAction('Delete file', 'Delete {{ f.original_filename | replace("'","") }}?', '/admin/items/{{ item.id }}/files/{{ f.id }}/delete')">
+            ×
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: meta + history -->
+  <div>
+    <div class="card mb-2">
+      <div class="card-title">Metadata</div>
+      <div class="meta-list">
+        <div class="meta-row">
+          <span class="meta-key">Owner</span>
+          <span class="meta-val">{{ item.owner.username if item.owner else "—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Department</span>
+          <span class="meta-val">{{ item.department.name if item.department else "—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Source</span>
+          <span class="meta-val">{{ item.source.name if item.source else "—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Doc type</span>
+          <span class="meta-val">{{ item.document_type.name if item.document_type else "—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Locked</span>
+          <span class="meta-val">{% if item.is_locked %}<span class="text-warning">Yes</span>{% else %}No{% endif %}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Submitted</span>
+          <span class="meta-val text-sm">{{ item.created_at.strftime("%d %b %Y %H:%M") if item.created_at else "—" }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Updated</span>
+          <span class="meta-val text-sm">{{ item.updated_at.strftime("%d %b %Y %H:%M") if item.updated_at else "—" }}</span>
+        </div>
+        {% if item.review_due_date %}
+        <div class="meta-row">
+          <span class="meta-key">Review due</span>
+          <span class="meta-val text-sm">{{ item.review_due_date.strftime("%d %b %Y") }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if ring %}
+    <div class="card mb-2">
+      <div class="card-title">Review timer</div>
+      <div class="review-ring-container">
+        <div class="review-ring-svg-wrap">
+          <svg class="review-ring-svg" viewBox="0 0 130 130" aria-label="{{ ring.label }}">
+            <circle class="ring-track" cx="65" cy="65" r="54"/>
+            <circle class="ring-progress" cx="65" cy="65" r="54"
+              style="stroke: {{ ring.color }}; --ring-offset: {{ ring.offset }}; stroke-dasharray: {{ ring.circumference }}; stroke-dashoffset: {{ ring.circumference }};"
+            />
+          </svg>
+          <div class="review-ring-center">
+            {% if ring.overdue %}
+              <span class="ring-days" style="color:var(--danger);">{{ ring.days_remaining | abs }}</span>
+              <span class="ring-unit" style="color:var(--danger);">days over</span>
+            {% else %}
+              <span class="ring-days">{{ ring.days_remaining }}</span>
+              <span class="ring-unit">days left</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="review-ring-meta">
+          <div style="font-size:.875rem;color:var(--text);font-weight:600;margin-bottom:.25rem;">{{ ring.label }}</div>
+          <div style="font-size:.78rem;color:var(--text-muted);">Due {{ ring.due_date }}</div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:.2rem;">{{ ring.pct }}% time remaining</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-title">Status history</div>
+      {% if item.status_history %}
+      <div class="history-list">
+        {% for h in item.status_history | reverse %}
+        <div class="history-item">
+          <div class="history-dot"></div>
+          <div class="history-content">
+            <div class="history-line">
+              {% if h.from_status %}
+              <span class="badge {{ h.from_status.color_class }}">{{ h.from_status.name }}</span>
+              <span style="color:var(--text-muted)"> → </span>
+              {% endif %}
+              <span class="badge {{ h.to_status.color_class }}">{{ h.to_status.name }}</span>
+            </div>
+            <div class="history-meta">
+              {{ h.created_at.strftime("%d %b %Y %H:%M") }}
+              {% if h.changed_by %} · {{ h.changed_by.username }}{% endif %}
+            </div>
+            {% if h.note %}
+            <div class="history-note">{{ h.note }}</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted text-sm">No history yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

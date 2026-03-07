@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard — KCH Knowledge Base{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block header_actions %}
+  <a href="/app/items/new" class="btn btn-primary btn-sm">+ New Item</a>
+{% endblock %}
+
+{% block content %}
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-value">{{ total }}</div>
+    <div class="kpi-label">My submissions</div>
+  </div>
+  {% if dept_total is not none %}
+  <a href="/app/department" class="kpi-card" style="text-decoration:none;border-color:rgba(129,140,248,0.25);">
+    <div class="kpi-value" style="color:var(--accent);">{{ dept_total }}</div>
+    <div class="kpi-label">{{ department.name }} (dept total)</div>
+  </a>
+  {% endif %}
+  {% for status in statuses %}
+  <div class="kpi-card">
+    <div class="kpi-value">{{ status_counts.get(status.name, 0) }}</div>
+    <div class="kpi-label">{{ status.name }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="section-header">
+  <span class="section-title">Recent activity</span>
+  <a href="/app/items" class="btn btn-ghost btn-sm">View all →</a>
+</div>
+
+{% if recent_items %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Source</th>
+        <th>Status</th>
+        <th>Review</th>
+        <th>Updated</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in recent_items %}
+      <tr>
+        <td>
+          <a href="/app/items/{{ item.id }}" style="color:var(--text);font-weight:500;">{{ item.title }}</a>
+        </td>
+        <td class="text-muted text-sm">{{ item.source.name if item.source else "—" }}</td>
+        <td>
+          {% if item.status %}
+          <span class="badge {{ item.status.color_class }}">{{ item.status.name }}</span>
+          {% else %}
+          <span class="text-muted text-sm">—</span>
+          {% endif %}
+        </td>
+        <td class="text-muted text-sm">{{ review_label(item.review_due_date) or "—" }}</td>
+        <td class="text-muted text-sm">
+          {{ item.updated_at.strftime("%d %b %Y") if item.updated_at else "—" }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <h3>No items yet</h3>
+  <p>Submit your first knowledge contribution to get started.</p>
+  <a href="/app/items/new" class="btn btn-primary">Submit an item</a>
+</div>
+{% endif %}
+{% endblock %}

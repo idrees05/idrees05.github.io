@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from auth import require_session
+from auth import require_admin
 from database import get_db
 from models import TesterType, TestResult, TestRun, TestScript
 from shared import templates
@@ -21,7 +21,7 @@ async def reports_index(
     tester_type: str = None,
     environment: str = None,
     status: str = None,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     query = db.query(TestRun)
@@ -69,7 +69,7 @@ async def reports_index(
 async def run_detail(
     run_id: str,
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     run = db.get(TestRun, run_id)
@@ -113,7 +113,7 @@ async def run_detail(
 @router.get("/scripts", response_class=HTMLResponse)
 async def scripts_summary(
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     scripts = db.query(TestScript).filter(TestScript.is_active == True).order_by(TestScript.script_id).all()
@@ -141,7 +141,7 @@ async def scripts_summary(
 @router.get("/failures", response_class=HTMLResponse)
 async def failures_report(
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     failures = (
@@ -184,7 +184,7 @@ async def failures_report(
 @router.get("/retest", response_class=HTMLResponse)
 async def retest_report(
     request: Request,
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     retests = (
@@ -220,7 +220,7 @@ async def retest_report(
 
 @router.get("/export")
 async def export_csv(
-    session: dict = Depends(require_session),
+    session: dict = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     runs = db.query(TestRun).order_by(TestRun.started_at.desc()).all()

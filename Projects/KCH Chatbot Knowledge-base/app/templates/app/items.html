@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}My Items — KCH Knowledge Base{% endblock %}
+{% block page_title %}My Items{% endblock %}
+
+{% block header_actions %}
+  <a href="/app/items/new" class="btn btn-primary btn-sm">+ New Item</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<form method="get" action="/app/items">
+  <div class="filters-bar">
+    <div class="form-group">
+      <label class="field-label">Search</label>
+      <input type="text" name="q" class="field-input" placeholder="Search titles…" value="{{ filters.q }}">
+    </div>
+    <div class="form-group">
+      <label class="field-label">Source</label>
+      <select name="source_id" class="field-select">
+        <option value="">All sources</option>
+        {% for s in sources %}
+        <option value="{{ s.id }}" {% if filters.source_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="field-label">Department</label>
+      <select name="department_id" class="field-select">
+        <option value="">All departments</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}" {% if filters.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="field-label">Doc type</label>
+      <select name="document_type_id" class="field-select">
+        <option value="">All types</option>
+        {% for dt in document_types %}
+        <option value="{{ dt.id }}" {% if filters.document_type_id == dt.id %}selected{% endif %}>{{ dt.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="field-label">Status</label>
+      <select name="status_id" class="field-select">
+        <option value="">All statuses</option>
+        {% for s in statuses %}
+        <option value="{{ s.id }}" {% if filters.status_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group" style="display:flex;align-items:flex-end;gap:.5rem;">
+      <button type="submit" class="btn btn-secondary">Filter</button>
+      <a href="/app/items" class="btn btn-ghost">Clear</a>
+    </div>
+  </div>
+</form>
+
+{% if items %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Source</th>
+        <th>Department</th>
+        <th>Doc type</th>
+        <th>Status</th>
+        <th>Review</th>
+        <th>Updated</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>
+          <a href="/app/items/{{ item.id }}" style="color:var(--text);font-weight:500;">{{ item.title }}</a>
+          {% if item.is_locked %}<span class="badge status-default" style="margin-left:.4rem;">Locked</span>{% endif %}
+        </td>
+        <td class="text-sm text-muted">{{ item.source.name if item.source else "—" }}</td>
+        <td class="text-sm text-muted">{{ item.department.name if item.department else "—" }}</td>
+        <td class="text-sm text-muted">{{ item.document_type.name if item.document_type else "—" }}</td>
+        <td>
+          {% if item.status %}
+          <span class="badge {{ item.status.color_class }}">{{ item.status.name }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td class="text-sm text-muted">{{ review_label(item.review_due_date) or "—" }}</td>
+        <td class="text-sm text-muted">{{ item.updated_at.strftime("%d %b %Y") if item.updated_at else "—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <h3>No items found</h3>
+  <p>{% if filters.q or filters.source_id or filters.status_id %}Try adjusting your filters.{% else %}Submit your first knowledge item.{% endif %}</p>
+  <a href="/app/items/new" class="btn btn-primary">New item</a>
+</div>
+{% endif %}
+{% endblock %}

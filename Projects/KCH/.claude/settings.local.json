@@ -3,7 +3,26 @@
     "allow": [
       "Bash(pip show:*)",
       "Bash(curl:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(pip:*)",
+      "Bash(echo === Normal user login redirect ===:*)",
+      "Bash(robocopy:*)",
+      "Bash(az:*)",
+      "Bash(winget install:*)",
+      "Bash(\"$AZ\":*)",
+      "Bash(cmd:*)",
+      "Bash(powershell:*)",
+      "Bash(\"/c/Program Files/Microsoft SDKs/Azure/CLI2/wbin/az\":*)",
+      "Bash(\"$AZ\" account:*)",
+      "Bash(\"$AZ\" group:*)",
+      "Bash(\"$AZ\" role:*)",
+      "Bash(\"/c/Program Files/Microsoft SDKs/Azure/CLI2/wbin/az\" account:*)",
+      "Bash(\"/c/Program Files/Microsoft SDKs/Azure/CLI2/wbin/az\" login:*)",
+      "Bash(\"/c/Program Files/Microsoft SDKs/Azure/CLI2/wbin/az\" group:*)",
+      "Bash(\"/c/Program Files/Microsoft SDKs/Azure/CLI2/wbin/az\" role:*)",
+      "Bash(\"$AZ\" storage:*)",
+      "Bash(__NEW_LINE_a6eeb5b7ce1a7892__ $AZ:*)",
+      "Bash(\"$AZ\" appservice:*)"
     ]
   }
 }

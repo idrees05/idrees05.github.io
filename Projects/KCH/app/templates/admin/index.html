@@ -1,128 +1,479 @@
 {% extends "base.html" %}
 {% block title %}Admin — KCH UAT{% endblock %}
-{% block admin_link %}<a href="/admin">Admin</a>{% endblock %}
 
 {% block content %}
-<div class="page-container">
-  <div class="page-header">
-    <h1 class="page-title">Admin Dashboard</h1>
+<style>
+  /* ===== ADMIN DARK THEME — scoped to this page only ===== */
+  .main-content { background: #0d1117; }
+
+  .admin-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+    color: #e6edf3;
+  }
+
+  /* Header */
+  .ad-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .ad-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #e6edf3;
+    letter-spacing: -.03em;
+    line-height: 1.2;
+  }
+  .ad-subtitle { font-size: .875rem; color: #7d8590; margin-top: .375rem; }
+  .ad-header-actions { display: flex; gap: .625rem; align-items: center; margin-top: .25rem; }
+
+  /* Buttons */
+  .ad-btn {
+    display: inline-flex; align-items: center; gap: .375rem;
+    padding: .5rem 1.125rem;
+    border-radius: 6px;
+    font-size: .875rem; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent;
+    text-decoration: none; transition: all .15s; white-space: nowrap;
+    font-family: var(--font);
+  }
+  .ad-btn:hover { text-decoration: none; }
+  .ad-btn-primary { background: #238636; color: #fff; border-color: rgba(240,246,252,.1); }
+  .ad-btn-primary:hover { background: #2ea043; }
+  .ad-btn-secondary { background: #21262d; color: #c9d1d9; border-color: #30363d; }
+  .ad-btn-secondary:hover { background: #30363d; border-color: #8b949e; color: #e6edf3; }
+  .ad-btn-ghost { background: transparent; color: #58a6ff; border-color: #30363d; }
+  .ad-btn-ghost:hover { background: rgba(88,166,255,.08); border-color: #58a6ff; }
+  .ad-btn-danger { background: transparent; color: #f85149; border-color: #30363d; }
+  .ad-btn-danger:hover { background: rgba(248,81,73,.1); border-color: rgba(248,81,73,.4); }
+  .ad-btn-sm { padding: .3rem .75rem; font-size: .8125rem; }
+
+  /* Stats row */
+  .ad-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .ad-stat {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 1.5rem 1.5rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, transform .2s;
+    cursor: default;
+  }
+  .ad-stat:hover { border-color: #484f58; transform: translateY(-1px); }
+  .ad-stat-glow {
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    opacity: .06;
+    pointer-events: none;
+  }
+  .ad-stat-blue .ad-stat-glow { background: #58a6ff; }
+  .ad-stat-green .ad-stat-glow { background: #3fb950; }
+  .ad-stat-orange .ad-stat-glow { background: #d29922; }
+  .ad-stat-grey .ad-stat-glow { background: #8b949e; }
+  .ad-stat-value {
+    font-size: 2.75rem;
+    font-weight: 800;
+    letter-spacing: -.05em;
+    line-height: 1;
+    margin-bottom: .625rem;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  }
+  .ad-stat-blue .ad-stat-value  { color: #58a6ff; }
+  .ad-stat-green .ad-stat-value { color: #3fb950; }
+  .ad-stat-orange .ad-stat-value { color: #d29922; }
+  .ad-stat-grey .ad-stat-value  { color: #8b949e; }
+  .ad-stat-label {
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #7d8590;
+  }
+
+  /* Main grid */
+  .ad-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  /* Card */
+  .ad-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 1.75rem;
+    transition: border-color .2s;
+  }
+  .ad-card:hover { border-color: #484f58; }
+
+  .ad-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    gap: .75rem;
+  }
+  .ad-card-title-wrap { display: flex; align-items: center; gap: .625rem; }
+  .ad-card-icon {
+    width: 30px; height: 30px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .875rem; flex-shrink: 0;
+  }
+  .ad-card-title {
+    font-size: .9375rem;
+    font-weight: 700;
+    color: #e6edf3;
+    letter-spacing: -.01em;
+  }
+
+  /* Meta */
+  .ad-meta { font-size: .8125rem; color: #7d8590; margin-bottom: 1.25rem; }
+
+  /* Table */
+  .ad-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  .ad-table th {
+    text-align: left;
+    padding: .5rem .75rem;
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #7d8590;
+    border-bottom: 1px solid #21262d;
+  }
+  .ad-table td {
+    padding: .75rem .75rem;
+    color: #c9d1d9;
+    border-bottom: 1px solid #21262d;
+    vertical-align: middle;
+  }
+  .ad-table tr:last-child td { border-bottom: none; }
+  .ad-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+  .ad-code {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: .8rem;
+    color: #79c0ff;
+    font-family: ui-monospace, monospace;
+  }
+
+  /* Import / upload log */
+  .ad-log {
+    margin-top: 1.25rem;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 1.125rem 1.25rem;
+  }
+  .ad-log-title { font-size: .8125rem; font-weight: 700; color: #c9d1d9; margin-bottom: .75rem; }
+  .ad-log-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .3rem .5rem;
+    font-size: .8125rem;
+    color: #7d8590;
+  }
+  .ad-log-grid strong { color: #e6edf3; font-weight: 600; }
+  .ad-warn-title { font-size: .8rem; font-weight: 700; color: #f85149; margin: .875rem 0 .375rem; }
+  .ad-warnings { list-style: none; font-size: .8rem; color: #f85149; display: flex; flex-direction: column; gap: .2rem; }
+
+  /* Alert */
+  .ad-alert-error {
+    margin-top: 1rem;
+    padding: .75rem 1rem;
+    border-radius: 6px;
+    font-size: .875rem;
+    background: rgba(248,81,73,.1);
+    border: 1px solid rgba(248,81,73,.3);
+    color: #f85149;
+  }
+
+  /* Forms */
+  .ad-form { display: flex; flex-direction: column; gap: 1rem; }
+  .ad-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .ad-form-group { display: flex; flex-direction: column; gap: .375rem; }
+  .ad-label { font-size: .8125rem; font-weight: 600; color: #8b949e; }
+  .ad-label small { font-weight: 400; color: #484f58; font-size: .75rem; }
+  .ad-input, .ad-select {
+    width: 100%;
+    padding: .5625rem .875rem;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-size: .9rem;
+    font-family: var(--font);
+    color: #e6edf3;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .ad-input:focus, .ad-select:focus {
+    outline: none;
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88,166,255,.12);
+  }
+  .ad-select option { background: #161b22; }
+
+  /* Badges */
+  .ad-badge {
+    display: inline-flex; align-items: center;
+    padding: .2rem .65rem;
+    border-radius: 99px;
+    font-size: .7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  .ad-badge-green { background: rgba(63,185,80,.12); color: #3fb950; border: 1px solid rgba(63,185,80,.25); }
+  .ad-badge-grey  { background: rgba(139,148,158,.1); color: #8b949e; border: 1px solid rgba(139,148,158,.2); }
+
+  /* Quick links */
+  .ad-links { list-style: none; display: flex; flex-direction: column; gap: .25rem; }
+  .ad-links a {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .625rem .875rem;
+    border-radius: 8px;
+    font-size: .875rem; color: #c9d1d9;
+    border: 1px solid transparent;
+    transition: all .15s; text-decoration: none;
+  }
+  .ad-links a:hover { background: #1c2128; border-color: #30363d; color: #e6edf3; }
+  .ad-links-arrow { color: #484f58; font-size: .75rem; transition: color .15s; }
+  .ad-links a:hover .ad-links-arrow { color: #58a6ff; }
+
+  /* Divider */
+  .ad-divider { border: none; border-top: 1px solid #21262d; margin: 1.5rem 0; }
+  .ad-section-label {
+    font-size: .75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: #7d8590; margin-bottom: 1rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .ad-stats { grid-template-columns: 1fr 1fr; }
+    .ad-grid { grid-template-columns: 1fr; }
+    .ad-form-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="admin-page">
+
+  <!-- Page header -->
+  <div class="ad-header">
+    <div>
+      <h1 class="ad-title">Admin Dashboard</h1>
+      <p class="ad-subtitle">KCH Copilot UAT &nbsp;·&nbsp; Test management &amp; reporting</p>
+    </div>
+    <div class="ad-header-actions">
+      <a href="/reports" class="ad-btn ad-btn-ghost">View Reports</a>
+    </div>
   </div>
 
-  <div class="admin-grid">
-    <section class="admin-card">
-      <h2 class="admin-card-title">Test Scripts</h2>
+  <!-- Stats -->
+  <div class="ad-stats">
+    <div class="ad-stat ad-stat-blue">
+      <div class="ad-stat-glow"></div>
+      <div class="ad-stat-value">{{ script_total }}</div>
+      <div class="ad-stat-label">Active Scripts</div>
+    </div>
+    <div class="ad-stat ad-stat-grey">
+      <div class="ad-stat-glow"></div>
+      <div class="ad-stat-value">{{ run_stats.total }}</div>
+      <div class="ad-stat-label">Total Runs</div>
+    </div>
+    <div class="ad-stat ad-stat-green">
+      <div class="ad-stat-glow"></div>
+      <div class="ad-stat-value">{{ run_stats.submitted }}</div>
+      <div class="ad-stat-label">Submitted</div>
+    </div>
+    <div class="ad-stat ad-stat-orange">
+      <div class="ad-stat-glow"></div>
+      <div class="ad-stat-value">{{ run_stats.in_progress }}</div>
+      <div class="ad-stat-label">In Progress</div>
+    </div>
+  </div>
+
+  <div class="ad-grid">
+
+    <!-- Test Scripts -->
+    <div class="ad-card">
+      <div class="ad-card-header">
+        <div class="ad-card-title-wrap">
+          <span class="ad-card-icon">📋</span>
+          <span class="ad-card-title">Test Scripts</span>
+        </div>
+        <form method="post" action="/admin/import" style="margin:0">
+          <button type="submit" class="ad-btn ad-btn-secondary ad-btn-sm">Re-import CSVs</button>
+        </form>
+      </div>
+
       {% if last_import %}
-      <p class="admin-meta">Last imported: {{ last_import.strftime('%d %b %Y %H:%M') }}</p>
+      <p class="ad-meta">Last imported &nbsp;{{ last_import.strftime('%d %b %Y at %H:%M') }}</p>
       {% else %}
-      <p class="admin-meta">No import recorded yet.</p>
+      <p class="ad-meta">No import has been run yet.</p>
       {% endif %}
-      <table class="data-table">
-        <thead><tr><th>Type</th><th>Active Scripts</th></tr></thead>
+
+      <table class="ad-table">
+        <thead>
+          <tr><th>Tester Type</th><th>Active</th></tr>
+        </thead>
         <tbody>
           {% for sc in script_counts %}
-          <tr><td>{{ sc.label }}</td><td>{{ sc.count }}</td></tr>
+          <tr>
+            <td>{{ sc.label }}</td>
+            <td><strong style="color:#e6edf3">{{ sc.count }}</strong></td>
+          </tr>
           {% endfor %}
-          <tr><td><strong>Total</strong></td><td><strong>{{ script_total }}</strong></td></tr>
+          <tr>
+            <td style="color:#7d8590;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Total</td>
+            <td>
+              <span style="color:#58a6ff;font-weight:800;font-size:1.1rem;font-family:ui-monospace,monospace;letter-spacing:-.03em">
+                {{ script_total }}
+              </span>
+            </td>
+          </tr>
         </tbody>
       </table>
 
-      <form method="post" action="/admin/import" class="mt-2">
-        <button type="submit" class="btn btn-primary">Re-import CSVs</button>
-      </form>
-
       {% if import_log %}
-      <div class="import-log">
-        <h3 class="import-log-title">Import Result</h3>
-        <ul class="import-counts">
-          <li>Inserted: <strong>{{ import_log.inserted }}</strong></li>
-          <li>Updated: <strong>{{ import_log.updated }}</strong></li>
-          <li>Deactivated: <strong>{{ import_log.deactivated }}</strong></li>
-          <li>Skipped: <strong>{{ import_log.skipped }}</strong></li>
-          <li>Total active: <strong>{{ import_log.total_active }}</strong></li>
+      <div class="ad-log">
+        <p class="ad-log-title">Import Result</p>
+        <ul class="ad-log-grid">
+          <li>Inserted&nbsp;<strong>{{ import_log.inserted }}</strong></li>
+          <li>Updated&nbsp;<strong>{{ import_log.updated }}</strong></li>
+          <li>Deactivated&nbsp;<strong>{{ import_log.deactivated }}</strong></li>
+          <li>Skipped&nbsp;<strong>{{ import_log.skipped }}</strong></li>
+          <li>Total active&nbsp;<strong>{{ import_log.total_active }}</strong></li>
         </ul>
         {% if import_log.errors %}
-        <h4 class="import-warn-title">Warnings</h4>
-        <ul class="import-warnings">
-          {% for err in import_log.errors %}
-          <li>{{ err }}</li>
-          {% endfor %}
+        <p class="ad-warn-title">Warnings ({{ import_log.errors | length }})</p>
+        <ul class="ad-warnings">
+          {% for err in import_log.errors %}<li>{{ err }}</li>{% endfor %}
         </ul>
         {% endif %}
       </div>
       {% endif %}
-    </section>
+    </div>
 
-    <section class="admin-card">
-      <h2 class="admin-card-title">Upload Test Scripts CSV</h2>
-      <form method="post" action="/admin/upload" enctype="multipart/form-data" class="upload-form">
-        <div class="form-group">
-          <label for="tester_type" class="form-label">Tester Type</label>
-          <select id="tester_type" name="tester_type" class="form-select" required>
+    <!-- Quick Links -->
+    <div class="ad-card">
+      <div class="ad-card-header">
+        <div class="ad-card-title-wrap">
+          <span class="ad-card-icon">&#8599;</span>
+          <span class="ad-card-title">Quick Links</span>
+        </div>
+      </div>
+      <ul class="ad-links">
+        <li><a href="/reports"><span>All test runs</span><span class="ad-links-arrow">&#8594;</span></a></li>
+        <li><a href="/reports/scripts"><span>Script pass rates</span><span class="ad-links-arrow">&#8594;</span></a></li>
+        <li><a href="/reports/failures"><span>Failure analysis</span><span class="ad-links-arrow">&#8594;</span></a></li>
+        <li><a href="/reports/retest"><span>Retest list</span><span class="ad-links-arrow">&#8594;</span></a></li>
+        <li><a href="/reports/export"><span>Export CSV</span><span class="ad-links-arrow">&#8594;</span></a></li>
+      </ul>
+    </div>
+
+    <!-- Upload CSV -->
+    <div class="ad-card">
+      <div class="ad-card-header">
+        <div class="ad-card-title-wrap">
+          <span class="ad-card-icon">&#8679;</span>
+          <span class="ad-card-title">Upload Test Scripts</span>
+        </div>
+      </div>
+      <form method="post" action="/admin/upload" enctype="multipart/form-data" class="ad-form">
+        <div class="ad-form-group">
+          <label for="tester_type" class="ad-label">Tester Type</label>
+          <select id="tester_type" name="tester_type" class="ad-select" required>
             {% for tt in tester_types %}
             <option value="{{ tt.slug }}">{{ tt.label }}</option>
             {% endfor %}
           </select>
         </div>
-        <div class="form-group">
-          <label for="csv_file" class="form-label">CSV File</label>
-          <input id="csv_file" type="file" name="file" accept=".csv" class="form-input" required>
+        <div class="ad-form-group">
+          <label for="csv_file" class="ad-label">CSV File</label>
+          <input id="csv_file" type="file" name="file" accept=".csv" class="ad-input" required>
         </div>
-        <button type="submit" class="btn btn-primary">Upload CSV</button>
+        <div>
+          <button type="submit" class="ad-btn ad-btn-primary">Upload CSV</button>
+        </div>
       </form>
 
       {% if upload_error %}
-      <div class="alert alert-error mt-2">{{ upload_error }}</div>
+      <div class="ad-alert-error">{{ upload_error }}</div>
       {% endif %}
 
       {% if upload_log %}
-      <div class="import-log mt-2">
-        <h3 class="import-log-title">Upload Result</h3>
-        <ul class="import-counts">
-          <li>Inserted: <strong>{{ upload_log.inserted }}</strong></li>
-          <li>Updated: <strong>{{ upload_log.updated }}</strong></li>
-          <li>Skipped: <strong>{{ upload_log.skipped }}</strong></li>
-          <li>Total active: <strong>{{ upload_log.total_active }}</strong></li>
+      <div class="ad-log">
+        <p class="ad-log-title">Upload Result</p>
+        <ul class="ad-log-grid">
+          <li>Inserted&nbsp;<strong>{{ upload_log.inserted }}</strong></li>
+          <li>Updated&nbsp;<strong>{{ upload_log.updated }}</strong></li>
+          <li>Skipped&nbsp;<strong>{{ upload_log.skipped }}</strong></li>
+          <li>Total active&nbsp;<strong>{{ upload_log.total_active }}</strong></li>
         </ul>
         {% if upload_log.errors %}
-        <h4 class="import-warn-title">Warnings</h4>
-        <ul class="import-warnings">
-          {% for err in upload_log.errors %}
-          <li>{{ err }}</li>
-          {% endfor %}
+        <p class="ad-warn-title">Warnings</p>
+        <ul class="ad-warnings">
+          {% for err in upload_log.errors %}<li>{{ err }}</li>{% endfor %}
         </ul>
         {% endif %}
       </div>
       {% endif %}
-    </section>
+    </div>
 
-    <section class="admin-card">
-      <h2 class="admin-card-title">Tester Types</h2>
+    <!-- Tester Types -->
+    <div class="ad-card">
+      <div class="ad-card-header">
+        <div class="ad-card-title-wrap">
+          <span class="ad-card-icon">&#128100;</span>
+          <span class="ad-card-title">Tester Types</span>
+        </div>
+      </div>
 
       {% if type_error %}
-      <div class="alert alert-error mt-2">{{ type_error }}</div>
+      <div class="ad-alert-error">{{ type_error }}</div>
       {% endif %}
 
-      <table class="data-table">
+      <table class="ad-table">
         <thead>
-          <tr><th>Slug</th><th>Label</th><th>Description</th><th>Status</th><th></th></tr>
+          <tr><th>Slug</th><th>Label</th><th>Status</th><th></th></tr>
         </thead>
         <tbody>
           {% for tt in all_tester_types %}
           <tr>
-            <td><code>{{ tt.slug }}</code></td>
-            <td>{{ tt.label }}</td>
-            <td>{{ tt.description or '—' }}</td>
+            <td><span class="ad-code">{{ tt.slug }}</span></td>
+            <td>
+              <span style="color:#e6edf3;font-weight:600">{{ tt.label }}</span>
+              {% if tt.description %}<br><small style="color:#7d8590;font-size:.8rem">{{ tt.description }}</small>{% endif %}
+            </td>
             <td>
               {% if tt.is_active %}
-              <span class="status-badge status-submitted">Active</span>
+              <span class="ad-badge ad-badge-green">Active</span>
               {% else %}
-              <span class="status-badge status-progress">Inactive</span>
+              <span class="ad-badge ad-badge-grey">Inactive</span>
               {% endif %}
             </td>
             <td>
-              <form method="post" action="/admin/tester-types/{{ tt.slug }}/toggle" style="display:inline">
-                <button type="submit" class="btn btn-sm">
-                  {% if tt.is_active %}Deactivate{% else %}Reactivate{% endif %}
+              <form method="post" action="/admin/tester-types/{{ tt.slug }}/toggle">
+                <button type="submit" class="ad-btn {% if tt.is_active %}ad-btn-danger{% else %}ad-btn-ghost{% endif %} ad-btn-sm">
+                  {{ 'Deactivate' if tt.is_active else 'Reactivate' }}
                 </button>
               </form>
             </td>
@@ -131,49 +482,30 @@
         </tbody>
       </table>
 
-      <h3 class="admin-card-subtitle mt-2">Add Tester Type</h3>
-      <form method="post" action="/admin/tester-types" class="upload-form">
-        <div class="form-group">
-          <label for="tt_slug" class="form-label">Slug <span class="field-hint">(lowercase, no spaces)</span></label>
-          <input id="tt_slug" type="text" name="slug" class="form-input" required
-            placeholder="e.g. cardiology">
+      <hr class="ad-divider">
+      <p class="ad-section-label">Add Tester Type</p>
+
+      <form method="post" action="/admin/tester-types" class="ad-form">
+        <div class="ad-form-row">
+          <div class="ad-form-group">
+            <label for="tt_slug" class="ad-label">Slug <small>(lowercase, no spaces)</small></label>
+            <input id="tt_slug" type="text" name="slug" class="ad-input" required placeholder="e.g. cardiology">
+          </div>
+          <div class="ad-form-group">
+            <label for="tt_label" class="ad-label">Label</label>
+            <input id="tt_label" type="text" name="label" class="ad-input" required placeholder="e.g. Cardiology Team">
+          </div>
         </div>
-        <div class="form-group">
-          <label for="tt_label" class="form-label">Label</label>
-          <input id="tt_label" type="text" name="label" class="form-input" required
-            placeholder="e.g. Cardiology Team">
+        <div class="ad-form-group">
+          <label for="tt_desc" class="ad-label">Description <small>(optional)</small></label>
+          <input id="tt_desc" type="text" name="description" class="ad-input" placeholder="Short description shown to testers">
         </div>
-        <div class="form-group">
-          <label for="tt_desc" class="form-label">Description</label>
-          <input id="tt_desc" type="text" name="description" class="form-input"
-            placeholder="e.g. Cardiology-specific scenarios">
+        <div>
+          <button type="submit" class="ad-btn ad-btn-primary">Add Type</button>
         </div>
-        <button type="submit" class="btn btn-primary">Add Type</button>
       </form>
-    </section>
+    </div>
 
-    <section class="admin-card">
-      <h2 class="admin-card-title">Test Runs</h2>
-      <table class="data-table">
-        <thead><tr><th>Status</th><th>Count</th></tr></thead>
-        <tbody>
-          <tr><td>Total</td><td>{{ run_stats.total }}</td></tr>
-          <tr><td>Submitted</td><td>{{ run_stats.submitted }}</td></tr>
-          <tr><td>In Progress</td><td>{{ run_stats.in_progress }}</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section class="admin-card">
-      <h2 class="admin-card-title">Quick Links</h2>
-      <ul class="quick-links">
-        <li><a href="/reports">All test runs</a></li>
-        <li><a href="/reports/scripts">Script pass rates</a></li>
-        <li><a href="/reports/failures">Failure analysis</a></li>
-        <li><a href="/reports/retest">Retest list</a></li>
-        <li><a href="/reports/export">Export CSV</a></li>
-      </ul>
-    </section>
   </div>
 </div>
 {% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}New Item — KCH Knowledge Base{% endblock %}
+{% block page_title %}New Knowledge Item{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="/app/items">My Items</a>
+  <span class="sep">›</span>
+  <span>New Item</span>
+</div>
+
+<div style="max-width:760px;">
+  <form method="post" action="/app/items/new" enctype="multipart/form-data">
+
+    <div class="card mb-2">
+      <div class="card-title">Item details</div>
+
+      <div class="form-group">
+        <label for="title" class="field-label">Title <span style="color:var(--danger)">*</span></label>
+        <input type="text" id="title" name="title" class="field-input {% if errors.title %}border-danger{% endif %}"
+          placeholder="Brief descriptive title" value="{{ form.get('title', '') }}" required autofocus>
+        {% if errors.title %}<div class="field-error">{{ errors.title }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="summary" class="field-label">Summary</label>
+        <textarea id="summary" name="summary" class="field-textarea" rows="2"
+          placeholder="Optional — one or two sentences describing the content">{{ form.get('summary', '') }}</textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="source_id" class="field-label">Source</label>
+          <select id="source_id" name="source_id" class="field-select">
+            <option value="">— Select source —</option>
+            {% for s in sources %}
+            <option value="{{ s.id }}" {% if form.get('source_id') == s.id %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="department_id" class="field-label">Department</label>
+          <select id="department_id" name="department_id" class="field-select">
+            <option value="">— Select department —</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if form.get('department_id') == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="document_type_id" class="field-label">Document type</label>
+          <select id="document_type_id" name="document_type_id" class="field-select">
+            <option value="">— Select type —</option>
+            {% for dt in document_types %}
+            <option value="{{ dt.id }}" {% if form.get('document_type_id') == dt.id %}selected{% endif %}>{{ dt.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-2">
+      <div class="card-title">Review schedule</div>
+      <div class="form-group">
+        <label for="review_due_date" class="field-label">Next review date</label>
+        <input type="date" id="review_due_date" name="review_due_date"
+          class="field-input {% if errors.review_due_date %}border-danger{% endif %}"
+          value="{{ form.get('review_due_date', default_review) }}"
+          style="max-width:220px;">
+        {% if errors.review_due_date %}<div class="field-error">{{ errors.review_due_date }}</div>{% endif %}
+        <div class="field-hint" style="margin-top:.5rem;">
+          Reviews are required at least annually. Shorten the interval if content changes more frequently.
+        </div>
+        <div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setReviewInterval(1)">1 month</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setReviewInterval(3)">3 months</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setReviewInterval(6)">6 months</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setReviewInterval(12)">1 year</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-2">
+      <div class="card-title">Content</div>
+
+      <div class="form-group">
+        <label for="text_content" class="field-label">Proposed text content</label>
+        <textarea id="text_content" name="text_content" class="field-textarea" rows="8"
+          placeholder="Paste or type the knowledge content here (or attach files below)">{{ form.get('text_content', '') }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">Attach files</label>
+        <input type="file" name="files" multiple class="field-input" style="padding:.5rem;">
+        <div class="field-hint">Upload documents, images or supporting files. Max {{ upload_max_mb | default(20) }} MB each.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+      <a href="/app/items" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">Submit item</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function setReviewInterval(months) {
+    const d = new Date();
+    d.setMonth(d.getMonth() + months);
+    document.getElementById('review_due_date').value = d.toISOString().split('T')[0];
+  }
+</script>
+{% endblock %}
