@@ -35,6 +35,11 @@ async def lifespan(app: FastAPI):
             _conn.execute(_text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE"))
             _conn.commit()
         logger.info("Migrated: added is_admin column to users")
+    if "force_password_change" not in _user_cols:
+        with engine.connect() as _conn:
+            _conn.execute(_text("ALTER TABLE users ADD COLUMN force_password_change BOOLEAN DEFAULT FALSE"))
+            _conn.commit()
+        logger.info("Migrated: added force_password_change column to users")
 
     # Run initial import
     db = SessionLocal()

@@ -12,10 +12,11 @@ class User(Base):
     department    = Column(String)
     password_hash = Column(String, nullable=False)
     tester_types  = Column(Text, default="[]")   # JSON list of tester-type slugs
-    is_active     = Column(Boolean, default=True)
-    is_admin      = Column(Boolean, default=False)
-    created_at    = Column(DateTime, default=datetime.utcnow)
-    last_login    = Column(DateTime)
+    is_active              = Column(Boolean, default=True)
+    is_admin               = Column(Boolean, default=False)
+    force_password_change  = Column(Boolean, default=True)
+    created_at             = Column(DateTime, default=datetime.utcnow)
+    last_login             = Column(DateTime)
 
 
 class TesterType(Base):

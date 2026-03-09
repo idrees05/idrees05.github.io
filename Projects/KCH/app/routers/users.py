@@ -104,7 +104,36 @@ async def user_dashboard(
         .order_by(TestRun.started_at.desc())
         .all()
     )
+    pw_error = request.query_params.get("pw_error")
     return templates.TemplateResponse(
         "user/dashboard.html",
-        {"request": request, "user": user, "runs": runs},
+        {
+            "request": request,
+            "user": user,
+            "runs": runs,
+            "show_password_modal": bool(user.force_password_change),
+            "pw_error": pw_error,
+        },
     )
+
+
+@router.post("/change-password")
+async def user_change_password(
+    request: Request,
+    new_password: str = Form(...),
+    confirm_password: str = Form(...),
+    session: dict = Depends(require_user_session),
+    db: Session = Depends(get_db),
+):
+    if new_password != confirm_password:
+        return RedirectResponse("/user/dashboard?pw_error=Passwords+do+not+match.", status_code=303)
+    if len(new_password) < 8:
+        return RedirectResponse("/user/dashboard?pw_error=Password+must+be+at+least+8+characters.", status_code=303)
+
+    user = db.get(User, session["user_id"])
+    if user:
+        user.password_hash = hash_password(new_password)
+        user.force_password_change = False
+        db.commit()
+
+    return RedirectResponse("/user/dashboard", status_code=303)

@@ -2,6 +2,120 @@
 {% block title %}My Dashboard — KCH UAT{% endblock %}
 
 {% block content %}
+{% if show_password_modal %}
+<style>
+  .pw-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,.65); backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .pw-modal {
+    background: #fff; border-radius: 14px; padding: 2rem 2rem 1.75rem;
+    width: min(440px, 100%); box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  .pw-modal-icon { font-size: 2rem; margin-bottom: .75rem; }
+  .pw-modal h2 { font-size: 1.25rem; font-weight: 700; color: #1a1a2e; margin: 0 0 .375rem; }
+  .pw-modal p  { font-size: .875rem; color: #6b7280; margin: 0 0 1.5rem; line-height: 1.5; }
+  .pw-field { display: flex; flex-direction: column; gap: .375rem; margin-bottom: 1rem; }
+  .pw-field label { font-size: .8125rem; font-weight: 600; color: #374151; }
+  .pw-field input {
+    padding: .625rem .875rem; border: 1.5px solid #d1d5db; border-radius: 8px;
+    font-size: .9375rem; font-family: inherit; color: #1a1a2e;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .pw-field input:focus { outline: none; border-color: var(--nhs-blue); box-shadow: 0 0 0 3px rgba(0,94,184,.12); }
+  .pw-error {
+    background: #fdf2f2; border: 1px solid #fca5a5; border-radius: 8px;
+    padding: .625rem .875rem; font-size: .875rem; color: #dc2626;
+    margin-bottom: 1rem;
+  }
+  .pw-copy-banner {
+    display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px;
+    padding: .625rem .875rem; font-size: .875rem; color: #166534;
+    margin-bottom: 1rem; align-items: center; gap: .5rem;
+  }
+  .pw-submit {
+    width: 100%; padding: .75rem; border: none; border-radius: 8px;
+    background: var(--nhs-blue); color: #fff; font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: background .15s; font-family: inherit;
+  }
+  .pw-submit:hover { background: #004eae; }
+  .pw-submit:disabled { background: #93c5fd; cursor: not-allowed; }
+  .pw-hint { font-size: .78rem; color: #9ca3af; text-align: center; margin-top: .875rem; margin-bottom: 0; }
+</style>
+
+<div class="pw-overlay" id="pw-overlay">
+  <div class="pw-modal">
+    <div class="pw-modal-icon">🔑</div>
+    <h2>Set your own password</h2>
+    <p>You were given a temporary password. Choose one you'll remember — it will be copied to your clipboard automatically when you save.</p>
+
+    {% if pw_error %}
+    <div class="pw-error">{{ pw_error }}</div>
+    {% endif %}
+
+    <div class="pw-copy-banner" id="pw-copy-banner">
+      ✓ Password copied to clipboard! Saving…
+    </div>
+
+    <form id="pw-form" method="post" action="/user/change-password">
+      <div class="pw-field">
+        <label for="new_password">New password <span style="color:#9ca3af;font-weight:400;">(min. 8 characters)</span></label>
+        <input type="password" id="new_password" name="new_password" required minlength="8" autocomplete="new-password">
+      </div>
+      <div class="pw-field">
+        <label for="confirm_password">Confirm password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required minlength="8" autocomplete="new-password">
+      </div>
+      <div class="pw-error" id="pw-client-error" style="display:none;"></div>
+      <button type="submit" class="pw-submit" id="pw-submit-btn">Save Password</button>
+    </form>
+    <p class="pw-hint">You can change your password again any time from your profile.</p>
+  </div>
+</div>
+
+<script>
+document.getElementById('pw-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const pw = document.getElementById('new_password').value;
+  const confirm = document.getElementById('confirm_password').value;
+  const errEl = document.getElementById('pw-client-error');
+
+  errEl.style.display = 'none';
+
+  if (pw.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (pw !== confirm) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const form = this;
+  const btn = document.getElementById('pw-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const doCopy = navigator.clipboard
+    ? navigator.clipboard.writeText(pw)
+    : Promise.resolve();
+
+  doCopy
+    .then(() => {
+      document.getElementById('pw-copy-banner').style.display = 'flex';
+    })
+    .catch(() => {})
+    .finally(() => {
+      setTimeout(() => form.submit(), 800);
+    });
+});
+</script>
+{% endif %}
 <div class="page-container">
   <div class="page-header">
     <div>
