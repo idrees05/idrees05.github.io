@@ -3,6 +3,8 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
+from itertools import groupby
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -129,6 +131,22 @@ async def add_tester_type(
     )
 
 
+@router.post("/tester-types/{slug}/delete")
+async def delete_tester_type(
+    slug: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    tt = db.get(TesterType, slug)
+    if tt:
+        scripts = db.query(TestScript).filter(TestScript.tester_type == slug).all()
+        _cascade_delete_scripts(db, scripts)
+        db.delete(tt)
+        db.commit()
+    return RedirectResponse("/admin", status_code=303)
+
+
 @router.post("/tester-types/{slug}/toggle", response_class=HTMLResponse)
 async def toggle_tester_type(
     slug: str,
@@ -165,6 +183,188 @@ async def delete_run(
         db.delete(run)
         db.commit()
     return RedirectResponse("/reports", status_code=303)
+
+# ── Shared helpers ────────────────────────────────────────────────────────────
+
+def _cascade_delete_scripts(db: Session, scripts: list):
+    """Delete scripts and their associated results + evidence (including files)."""
+    script_ids = [s.script_id for s in scripts]
+    if not script_ids:
+        return
+    results = db.query(TestResult).filter(TestResult.script_id.in_(script_ids)).all()
+    result_ids = [r.result_id for r in results]
+    if result_ids:
+        for ev in db.query(Evidence).filter(Evidence.result_id.in_(result_ids)).all():
+            if ev.file_path:
+                try:
+                    Path(ev.file_path).unlink(missing_ok=True)
+                except Exception:
+                    pass
+            db.delete(ev)
+        for r in results:
+            db.delete(r)
+    for s in scripts:
+        db.delete(s)
+
+
+# ── Script management ──────────────────────────────────────────────────────────
+
+@router.get("/scripts", response_class=HTMLResponse)
+async def admin_scripts_list(
+    request: Request,
+    tester_type: str = None,
+    category: str = None,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    query = db.query(TestScript)
+    if tester_type:
+        query = query.filter(TestScript.tester_type == tester_type)
+    if category is not None and category != "":
+        query = query.filter(TestScript.category == category)
+
+    scripts = query.order_by(TestScript.category, TestScript.tester_type, TestScript.script_id).all()
+
+    # Group by category for display
+    grouped = [
+        (cat or "Uncategorised", list(grp))
+        for cat, grp in groupby(scripts, key=lambda s: s.category or "")
+    ]
+
+    # All distinct categories for the filter dropdown
+    all_cats = db.query(TestScript.category).distinct().filter(
+        TestScript.category != None, TestScript.category != ""
+    ).all()
+    categories = sorted(r[0] for r in all_cats)
+
+    tester_types = db.query(TesterType).order_by(TesterType.sort_order).all()
+
+    return templates.TemplateResponse(
+        "admin/scripts.html",
+        {
+            "request": request,
+            "grouped": grouped,
+            "scripts_total": len(scripts),
+            "categories": categories,
+            "tester_types": tester_types,
+            "filters": {
+                "tester_type": tester_type or "",
+                "category": category if category is not None else "",
+            },
+        },
+    )
+
+
+@router.post("/scripts/delete-category")
+async def admin_delete_by_category(
+    request: Request,
+    category: str = Form(...),
+    tester_type: str = Form(""),
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    query = db.query(TestScript).filter(TestScript.category == category)
+    if tester_type:
+        query = query.filter(TestScript.tester_type == tester_type)
+    scripts = query.all()
+    _cascade_delete_scripts(db, scripts)
+    db.commit()
+    return RedirectResponse("/admin/scripts", status_code=303)
+
+
+@router.post("/scripts/{script_id}/delete")
+async def admin_delete_script(
+    script_id: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    script = db.get(TestScript, script_id)
+    if script:
+        _cascade_delete_scripts(db, [script])
+        db.commit()
+    return RedirectResponse("/admin/scripts", status_code=303)
+
+
+@router.get("/scripts/{script_id}/edit", response_class=HTMLResponse)
+async def admin_edit_script_page(
+    script_id: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    script = db.get(TestScript, script_id)
+    if not script:
+        return RedirectResponse("/admin/scripts", status_code=303)
+    tester_types = db.query(TesterType).order_by(TesterType.sort_order).all()
+    return templates.TemplateResponse(
+        "admin/edit_script.html",
+        {"request": request, "script": script, "tester_types": tester_types, "error": None},
+    )
+
+
+@router.post("/scripts/{script_id}/edit")
+async def admin_edit_script(
+    script_id: str,
+    request: Request,
+    title: str = Form(...),
+    tester_type: str = Form(...),
+    scenario: str = Form(""),
+    expected_outcome: str = Form(""),
+    preconditions: str = Form(""),
+    required_test_data: str = Form(""),
+    test_steps: str = Form(...),
+    category: str = Form(""),
+    recommended_tester_type: str = Form(""),
+    is_exploratory: str = Form("off"),
+    is_active: str = Form("off"),
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    script = db.get(TestScript, script_id)
+    if not script:
+        return RedirectResponse("/admin/scripts", status_code=303)
+
+    tester_types = db.query(TesterType).order_by(TesterType.sort_order).all()
+
+    if not title.strip() or not test_steps.strip():
+        return templates.TemplateResponse(
+            "admin/edit_script.html",
+            {
+                "request": request,
+                "script": script,
+                "tester_types": tester_types,
+                "error": "Title and Test Steps are required.",
+            },
+            status_code=422,
+        )
+
+    script.title = title.strip()
+    script.tester_type = tester_type
+    script.scenario = scenario.strip() or None
+    script.expected_outcome = expected_outcome.strip() or None
+    script.preconditions = preconditions.strip() or None
+    script.required_test_data = required_test_data.strip() or None
+    script.test_steps = test_steps.strip()
+    script.category = category.strip() or None
+    script.recommended_tester_type = recommended_tester_type.strip() or None
+    script.is_exploratory = is_exploratory == "on"
+    script.is_active = is_active == "on"
+    script.updated_at = datetime.utcnow()
+
+    # Recalculate row_hash so future CSV imports correctly detect changes
+    from importer import _row_hash
+    script.row_hash = _row_hash({
+        "title": script.title,
+        "test_steps": script.test_steps,
+        "expected_outcome": script.expected_outcome or "",
+        "scenario": script.scenario or "",
+        "preconditions": script.preconditions or "",
+    })
+
+    db.commit()
+    return RedirectResponse("/admin/scripts", status_code=303)
+
 
 # ── User management ───────────────────────────────────────────────────────────
 

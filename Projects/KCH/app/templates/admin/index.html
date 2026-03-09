@@ -386,6 +386,7 @@
         <li><a href="/reports/failures"><span>Failure analysis</span><span class="ad-links-arrow">&#8594;</span></a></li>
         <li><a href="/reports/retest"><span>Retest list</span><span class="ad-links-arrow">&#8594;</span></a></li>
         <li><a href="/reports/export"><span>Export CSV</span><span class="ad-links-arrow">&#8594;</span></a></li>
+        <li><a href="/admin/scripts"><span>Manage scripts</span><span class="ad-links-arrow">&#8594;</span></a></li>
         <li><a href="/admin/users"><span>User accounts</span><span class="ad-links-arrow">&#8594;</span></a></li>
       </ul>
     </div>
@@ -472,11 +473,18 @@
               {% endif %}
             </td>
             <td>
-              <form method="post" action="/admin/tester-types/{{ tt.slug }}/toggle">
-                <button type="submit" class="ad-btn {% if tt.is_active %}ad-btn-danger{% else %}ad-btn-ghost{% endif %} ad-btn-sm">
-                  {{ 'Deactivate' if tt.is_active else 'Reactivate' }}
-                </button>
-              </form>
+              <div style="display:flex;gap:.375rem;align-items:center;">
+                <form method="post" action="/admin/tester-types/{{ tt.slug }}/toggle">
+                  <button type="submit" class="ad-btn {% if tt.is_active %}ad-btn-danger{% else %}ad-btn-ghost{% endif %} ad-btn-sm">
+                    {{ 'Deactivate' if tt.is_active else 'Reactivate' }}
+                  </button>
+                </form>
+                {% set sc = script_counts | selectattr('slug', 'equalto', tt.slug) | first %}
+                <form method="post" action="/admin/tester-types/{{ tt.slug }}/delete"
+                  onsubmit="return confirm('Permanently delete \'{{ tt.label }}\' and all {{ sc.count if sc else 0 }} test script(s)? Any recorded test results for these scripts will also be deleted. This cannot be undone.')">
+                  <button type="submit" class="ad-btn ad-btn-danger ad-btn-sm">Delete</button>
+                </form>
+              </div>
             </td>
           </tr>
           {% endfor %}

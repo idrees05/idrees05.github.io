@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ script.script_id }} — Admin{% endblock %}
+
+{% block content %}
+<style>
+  .main-content { background: #0d1117; }
+  .es-page { max-width: 900px; margin: 0 auto; padding: 2rem 2rem 4rem; color: #e6edf3; }
+
+  .es-back { color: #58a6ff; font-size: .875rem; text-decoration: none; display: inline-flex; align-items: center; gap: .3rem; margin-bottom: 1rem; }
+  .es-back:hover { color: #79c0ff; }
+
+  .es-header { margin-bottom: 1.75rem; }
+  .es-title { font-size: 1.375rem; font-weight: 700; color: #e6edf3; letter-spacing: -.02em; margin: 0 0 .25rem; }
+  .es-sub { font-size: .875rem; color: #7d8590; font-family: ui-monospace, monospace; }
+
+  .es-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 1.75rem; }
+  .es-form { display: flex; flex-direction: column; gap: 1.25rem; }
+  .es-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .es-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+  .es-group { display: flex; flex-direction: column; gap: .375rem; }
+  .es-label { font-size: .8125rem; font-weight: 600; color: #8b949e; }
+  .es-label small { font-weight: 400; color: #484f58; font-size: .75rem; }
+
+  .es-input, .es-select, .es-textarea {
+    width: 100%; padding: .5625rem .875rem;
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+    font-size: .875rem; font-family: var(--font); color: #e6edf3;
+    transition: border-color .15s, box-shadow .15s; box-sizing: border-box;
+  }
+  .es-input:focus, .es-select:focus, .es-textarea:focus {
+    outline: none; border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88,166,255,.12);
+  }
+  .es-select option { background: #161b22; }
+  .es-textarea { resize: vertical; line-height: 1.5; }
+
+  .es-check-row { display: flex; align-items: center; gap: .625rem; cursor: pointer; }
+  .es-check-row input { accent-color: #58a6ff; width: 15px; height: 15px; }
+  .es-check-label { font-size: .875rem; color: #c9d1d9; }
+
+  .es-divider { border: none; border-top: 1px solid #21262d; margin: .25rem 0; }
+  .es-section-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #7d8590; margin-bottom: .25rem; }
+
+  .es-alert-error {
+    padding: .75rem 1rem; border-radius: 6px; font-size: .875rem;
+    background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.3); color: #f85149;
+    margin-bottom: 1.25rem;
+  }
+
+  .es-actions { display: flex; gap: .625rem; align-items: center; padding-top: .25rem; }
+  .es-btn {
+    display: inline-flex; align-items: center;
+    padding: .5625rem 1.25rem; border-radius: 6px;
+    font-size: .875rem; font-weight: 600; cursor: pointer;
+    border: 1px solid transparent; text-decoration: none; transition: all .15s; font-family: var(--font);
+  }
+  .es-btn-primary { background: #238636; color: #fff; border-color: rgba(240,246,252,.1); }
+  .es-btn-primary:hover { background: #2ea043; }
+  .es-btn-ghost { background: transparent; color: #8b949e; border-color: #30363d; }
+  .es-btn-ghost:hover { background: #21262d; color: #c9d1d9; }
+
+  @media (max-width: 700px) { .es-row, .es-row-3 { grid-template-columns: 1fr; } }
+</style>
+
+<div class="admin-page">
+<div class="es-page">
+
+  <a href="/admin/scripts" class="es-back">&#8592; Back to Scripts</a>
+
+  <div class="es-header">
+    <h1 class="es-title">Edit Script</h1>
+    <p class="es-sub">{{ script.script_id }}</p>
+  </div>
+
+  {% if error %}
+  <div class="es-alert-error">{{ error }}</div>
+  {% endif %}
+
+  <div class="es-card">
+    <form method="post" action="/admin/scripts/{{ script.script_id }}/edit" class="es-form">
+
+      <div class="es-row">
+        <div class="es-group" style="grid-column: 1 / -1;">
+          <label for="title" class="es-label">Title *</label>
+          <input id="title" type="text" name="title" class="es-input" required value="{{ script.title }}">
+        </div>
+      </div>
+
+      <div class="es-row">
+        <div class="es-group">
+          <label for="tester_type" class="es-label">Tester type *</label>
+          <select id="tester_type" name="tester_type" class="es-select" required>
+            {% for tt in tester_types %}
+            <option value="{{ tt.slug }}" {% if script.tester_type == tt.slug %}selected{% endif %}>{{ tt.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="es-group">
+          <label for="category" class="es-label">Category <small>(optional)</small></label>
+          <input id="category" type="text" name="category" class="es-input" value="{{ script.category or '' }}" placeholder="e.g. Clinical, Admin">
+        </div>
+      </div>
+
+      <div class="es-group">
+        <label for="scenario" class="es-label">Scenario <small>(optional)</small></label>
+        <textarea id="scenario" name="scenario" class="es-textarea" rows="3">{{ script.scenario or '' }}</textarea>
+      </div>
+
+      <div class="es-group">
+        <label for="preconditions" class="es-label">Preconditions / User role <small>(optional)</small></label>
+        <textarea id="preconditions" name="preconditions" class="es-textarea" rows="2">{{ script.preconditions or '' }}</textarea>
+      </div>
+
+      <div class="es-group">
+        <label for="required_test_data" class="es-label">Required test data <small>(optional)</small></label>
+        <textarea id="required_test_data" name="required_test_data" class="es-textarea" rows="2">{{ script.required_test_data or '' }}</textarea>
+      </div>
+
+      <div class="es-group">
+        <label for="test_steps" class="es-label">Test steps *</label>
+        <textarea id="test_steps" name="test_steps" class="es-textarea" rows="8" required>{{ script.test_steps }}</textarea>
+      </div>
+
+      <div class="es-group">
+        <label for="expected_outcome" class="es-label">Expected outcome <small>(optional)</small></label>
+        <textarea id="expected_outcome" name="expected_outcome" class="es-textarea" rows="3">{{ script.expected_outcome or '' }}</textarea>
+      </div>
+
+      <div class="es-group">
+        <label for="recommended_tester_type" class="es-label">Recommended tester type <small>(optional free-text)</small></label>
+        <input id="recommended_tester_type" type="text" name="recommended_tester_type" class="es-input" value="{{ script.recommended_tester_type or '' }}">
+      </div>
+
+      <hr class="es-divider">
+      <p class="es-section-label">Flags</p>
+
+      <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+        <label class="es-check-row">
+          <input type="checkbox" name="is_active" {% if script.is_active %}checked{% endif %}>
+          <span class="es-check-label">Active <small style="color:#7d8590;">(visible to testers)</small></span>
+        </label>
+        <label class="es-check-row">
+          <input type="checkbox" name="is_exploratory" {% if script.is_exploratory %}checked{% endif %}>
+          <span class="es-check-label">Exploratory test</span>
+        </label>
+      </div>
+
+      <div class="es-actions">
+        <button type="submit" class="es-btn es-btn-primary">Save Changes</button>
+        <a href="/admin/scripts" class="es-btn es-btn-ghost">Cancel</a>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+</div>
+{% endblock %}

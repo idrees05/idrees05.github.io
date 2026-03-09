@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Manage Scripts — Admin{% endblock %}
+
+{% block content %}
+<style>
+  .main-content { background: #0d1117; }
+  .sc-page { max-width: 1300px; margin: 0 auto; padding: 2rem 2rem 4rem; color: #e6edf3; }
+
+  .sc-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
+  .sc-back { color: #58a6ff; font-size: .875rem; text-decoration: none; display: inline-flex; align-items: center; gap: .3rem; margin-bottom: .625rem; }
+  .sc-back:hover { color: #79c0ff; }
+  .sc-title { font-size: 1.5rem; font-weight: 700; color: #e6edf3; letter-spacing: -.02em; margin: 0; }
+  .sc-sub { font-size: .875rem; color: #7d8590; margin: .25rem 0 0; }
+
+  .sc-filters {
+    display: flex; gap: .625rem; align-items: center; flex-wrap: wrap;
+    background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+    padding: .875rem 1.25rem; margin-bottom: 1.75rem;
+  }
+  .sc-select {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+    color: #e6edf3; padding: .4375rem .75rem; font-size: .875rem; font-family: var(--font);
+  }
+  .sc-select:focus { outline: none; border-color: #58a6ff; }
+  .sc-select option { background: #161b22; }
+
+  .sc-btn {
+    display: inline-flex; align-items: center; gap: .375rem;
+    padding: .4375rem 1rem; border-radius: 6px;
+    font-size: .8125rem; font-weight: 600; cursor: pointer;
+    border: 1px solid transparent; text-decoration: none;
+    transition: all .15s; font-family: var(--font); white-space: nowrap;
+  }
+  .sc-btn:hover { text-decoration: none; }
+  .sc-btn-ghost  { background: transparent; color: #58a6ff; border-color: #30363d; }
+  .sc-btn-ghost:hover { background: rgba(88,166,255,.08); border-color: #58a6ff; }
+  .sc-btn-danger { background: transparent; color: #f85149; border-color: #30363d; }
+  .sc-btn-danger:hover { background: rgba(248,81,73,.1); border-color: rgba(248,81,73,.4); }
+  .sc-btn-muted  { background: transparent; color: #7d8590; border-color: #30363d; font-size:.8rem; }
+  .sc-btn-muted:hover { color: #c9d1d9; background: #21262d; }
+  .sc-btn-sm { padding: .25rem .625rem; font-size: .78rem; }
+
+  .sc-group { margin-bottom: 2.25rem; }
+  .sc-group-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: .75rem; padding-bottom: .625rem;
+    border-bottom: 1px solid #21262d; flex-wrap: wrap; gap: .5rem;
+  }
+  .sc-group-title {
+    font-size: .9375rem; font-weight: 700; color: #e6edf3;
+    display: flex; align-items: center; gap: .625rem;
+  }
+  .sc-group-count {
+    background: rgba(88,166,255,.1); color: #58a6ff;
+    border: 1px solid rgba(88,166,255,.2);
+    font-size: .7rem; padding: .15rem .55rem; border-radius: 99px; font-weight: 700;
+  }
+
+  .sc-table-wrap { background: #161b22; border: 1px solid #30363d; border-radius: 10px; overflow: hidden; }
+  .sc-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  .sc-table th {
+    background: #0d1117; color: #7d8590; padding: .5rem 1rem;
+    text-align: left; font-size: .7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid #21262d;
+  }
+  .sc-table td { padding: .625rem 1rem; color: #c9d1d9; border-bottom: 1px solid #21262d; vertical-align: middle; }
+  .sc-table tr:last-child td { border-bottom: none; }
+  .sc-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+
+  .sc-code { background: #0d1117; border: 1px solid #30363d; padding: 2px 7px; border-radius: 4px; font-size: .78rem; color: #79c0ff; font-family: ui-monospace, monospace; }
+  .sc-badge { display: inline-block; padding: .15rem .55rem; border-radius: 99px; font-size: .7rem; font-weight: 700; }
+  .sc-badge-active   { background: rgba(63,185,80,.12);   color: #3fb950; border: 1px solid rgba(63,185,80,.25); }
+  .sc-badge-inactive { background: rgba(139,148,158,.1);  color: #8b949e; border: 1px solid rgba(139,148,158,.2); }
+  .sc-badge-exp      { background: rgba(210,153,34,.12);  color: #d29922; border: 1px solid rgba(210,153,34,.25); }
+
+  .sc-empty { text-align: center; padding: 4rem 2rem; color: #7d8590; }
+
+  @media (max-width: 768px) { .sc-page { padding: 1.25rem 1rem 3rem; } }
+</style>
+
+<div class="admin-page">
+<div class="sc-page">
+
+  <a href="/admin" class="sc-back">&#8592; Back to Admin</a>
+
+  <div class="sc-header">
+    <div>
+      <h1 class="sc-title">Test Scripts</h1>
+      <p class="sc-sub">{{ scripts_total }} script{{ 's' if scripts_total != 1 }} shown</p>
+    </div>
+  </div>
+
+  <form method="get" class="sc-filters">
+    <select name="tester_type" class="sc-select">
+      <option value="">All tester types</option>
+      {% for tt in tester_types %}
+      <option value="{{ tt.slug }}" {% if filters.tester_type == tt.slug %}selected{% endif %}>{{ tt.label }}</option>
+      {% endfor %}
+    </select>
+    <select name="category" class="sc-select">
+      <option value="">All categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat }}" {% if filters.category == cat %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="sc-btn sc-btn-ghost">Filter</button>
+    <a href="/admin/scripts" class="sc-btn sc-btn-muted">Clear</a>
+  </form>
+
+  {% if grouped %}
+    {% for category_name, scripts in grouped %}
+    <div class="sc-group">
+      <div class="sc-group-head">
+        <div class="sc-group-title">
+          {{ category_name or 'Uncategorised' }}
+          <span class="sc-group-count">{{ scripts | length }}</span>
+        </div>
+        <form method="post" action="/admin/scripts/delete-category"
+          onsubmit="return confirm('Delete all {{ scripts | length }} script(s) in \'{{ category_name }}\'? Associated test results will also be deleted. This cannot be undone.')">
+          <input type="hidden" name="category" value="{{ scripts[0].category or '' }}">
+          {% if filters.tester_type %}
+          <input type="hidden" name="tester_type" value="{{ filters.tester_type }}">
+          {% endif %}
+          <button type="submit" class="sc-btn sc-btn-danger sc-btn-sm">
+            Delete all {{ scripts | length }} in this category
+          </button>
+        </form>
+      </div>
+
+      <div class="sc-table-wrap">
+        <table class="sc-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for script in scripts %}
+            <tr>
+              <td><span class="sc-code">{{ script.script_id }}</span></td>
+              <td>
+                <span style="color:#e6edf3;">{{ script.title }}</span>
+                {% if script.is_exploratory %}
+                <span class="sc-badge sc-badge-exp" style="margin-left:.375rem;">Exploratory</span>
+                {% endif %}
+              </td>
+              <td style="color:#7d8590;font-size:.8rem;">{{ script.tester_type }}</td>
+              <td>
+                {% if script.is_active %}
+                <span class="sc-badge sc-badge-active">Active</span>
+                {% else %}
+                <span class="sc-badge sc-badge-inactive">Inactive</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:.375rem;align-items:center;">
+                  <a href="/admin/scripts/{{ script.script_id }}/edit" class="sc-btn sc-btn-ghost sc-btn-sm">Edit</a>
+                  <form method="post" action="/admin/scripts/{{ script.script_id }}/delete"
+                    onsubmit="return confirm('Delete script {{ script.script_id }}? Any recorded test results for this script will also be deleted.')">
+                    <button type="submit" class="sc-btn sc-btn-danger sc-btn-sm">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="sc-empty"><p>No scripts found matching the current filters.</p></div>
+  {% endif %}
+
+</div>
+</div>
+{% endblock %}
