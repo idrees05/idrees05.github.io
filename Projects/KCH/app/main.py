@@ -26,6 +26,16 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created/verified")
 
+    # Migrate: add is_admin column to users if missing (no Alembic)
+    from sqlalchemy import inspect as _inspect, text as _text
+    _insp = _inspect(engine)
+    _user_cols = [c["name"] for c in _insp.get_columns("users")]
+    if "is_admin" not in _user_cols:
+        with engine.connect() as _conn:
+            _conn.execute(_text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE"))
+            _conn.commit()
+        logger.info("Migrated: added is_admin column to users")
+
     # Run initial import
     db = SessionLocal()
     try:

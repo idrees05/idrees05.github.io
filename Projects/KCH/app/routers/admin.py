@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
@@ -181,6 +182,82 @@ async def admin_users(
     )
 
 
+@router.get("/users/new", response_class=HTMLResponse)
+async def admin_new_user_page(
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    tester_types = db.query(TesterType).order_by(TesterType.sort_order).all()
+    return templates.TemplateResponse(
+        "admin/new_user.html",
+        {"request": request, "tester_types": tester_types, "error": None, "form": {}},
+    )
+
+
+@router.post("/users/new", response_class=HTMLResponse)
+async def admin_create_user(
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    import json as _json
+    import uuid as _uuid
+
+    form = await request.form()
+    name = (form.get("name") or "").strip()
+    email = (form.get("email") or "").strip().lower()
+    department = (form.get("department") or "").strip()
+    selected_types = form.getlist("tester_types")
+    is_admin_flag = form.get("is_admin") == "on"
+
+    tester_types = db.query(TesterType).order_by(TesterType.sort_order).all()
+    form_data = {"name": name, "email": email, "department": department}
+
+    error = None
+    if not name:
+        error = "Full name is required."
+    elif not email:
+        error = "Email is required."
+    elif not email.endswith("@nhs.net"):
+        error = "Email must end with @nhs.net."
+    elif db.query(User).filter(User.email == email).first():
+        error = f"A user with email '{email}' already exists."
+
+    if error:
+        return templates.TemplateResponse(
+            "admin/new_user.html",
+            {"request": request, "tester_types": tester_types, "error": error, "form": form_data, "selected_types": selected_types},
+            status_code=422,
+        )
+
+    raw_password = generate_password()
+    new_user = User(
+        user_id=str(_uuid.uuid4()),
+        email=email,
+        name=name,
+        department=department or None,
+        password_hash=hash_password(raw_password),
+        tester_types=_json.dumps(selected_types),
+        is_active=True,
+        is_admin=is_admin_flag,
+        created_at=datetime.utcnow(),
+    )
+    db.add(new_user)
+    db.commit()
+
+    users = db.query(User).order_by(User.created_at.desc()).all()
+    return templates.TemplateResponse(
+        "admin/users.html",
+        {
+            "request": request,
+            "users": users,
+            "tester_types": tester_types,
+            "new_user_info": {"name": new_user.name, "email": new_user.email, "password": raw_password},
+        },
+    )
+
+
 @router.get("/users/{user_id}", response_class=HTMLResponse)
 async def admin_user_detail(
     user_id: str,
@@ -296,6 +373,20 @@ async def admin_assign_types(
     if user:
         import json as _json
         user.tester_types = _json.dumps(selected)
+        db.commit()
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@router.post("/users/{user_id}/toggle-admin")
+async def admin_toggle_admin(
+    user_id: str,
+    request: Request,
+    session: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    user = db.get(User, user_id)
+    if user:
+        user.is_admin = not user.is_admin
         db.commit()
     return RedirectResponse("/admin/users", status_code=303)
 

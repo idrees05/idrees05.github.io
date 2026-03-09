@@ -20,8 +20,11 @@
           {% if is_admin(request) %}
           <a href="/reports">Reports</a>
           <a href="/admin">Admin</a>
-          {% endif %}
           <a href="/logout" class="btn-link">Sign out</a>
+          {% else %}
+          <a href="/user/dashboard" class="btn-link">My Dashboard</a>
+          <a href="/user/logout" class="btn-link">Sign out</a>
+          {% endif %}
         {% endif %}
       </nav>
     </div>

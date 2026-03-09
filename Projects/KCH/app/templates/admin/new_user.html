@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Create User — Admin{% endblock %}
+
+{% block content %}
+<style>
+  .main-content { background: #0d1117; }
+  .nu-page { max-width: 640px; margin: 0 auto; padding: 2rem 2rem 4rem; color: #e6edf3; }
+  .nu-back { color: #8b949e; font-size: .875rem; text-decoration: none; display: inline-flex; align-items: center; gap: .4rem; margin-bottom: 1.5rem; }
+  .nu-back:hover { color: #c9d1d9; }
+  .nu-title { font-size: 1.5rem; font-weight: 700; color: #e6edf3; letter-spacing: -.02em; margin: 0 0 .25rem; }
+  .nu-sub { font-size: .875rem; color: #8b949e; margin: 0 0 2rem; }
+
+  .nu-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 1.75rem; }
+
+  .nu-form { display: flex; flex-direction: column; gap: 1.25rem; }
+  .nu-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .nu-group { display: flex; flex-direction: column; gap: .375rem; }
+  .nu-label { font-size: .8125rem; font-weight: 600; color: #8b949e; }
+  .nu-label small { font-weight: 400; color: #484f58; font-size: .75rem; }
+  .nu-input {
+    width: 100%; padding: .5625rem .875rem;
+    background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+    font-size: .9rem; font-family: var(--font); color: #e6edf3;
+    transition: border-color .15s, box-shadow .15s; box-sizing: border-box;
+  }
+  .nu-input:focus { outline: none; border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88,166,255,.12); }
+  .nu-input.has-error { border-color: #f85149; }
+
+  .nu-check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .5rem; margin-top: .25rem; }
+  .nu-check-item {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .5rem .75rem; background: #0d1117; border: 1px solid #30363d;
+    border-radius: 6px; cursor: pointer; font-size: .8125rem; color: #c9d1d9;
+    transition: border-color .15s;
+  }
+  .nu-check-item:hover { border-color: #484f58; }
+  .nu-check-item input { accent-color: #1f6feb; }
+
+  .nu-admin-row {
+    display: flex; align-items: center; gap: .625rem;
+    padding: .875rem 1rem; background: rgba(210,153,34,.07);
+    border: 1px solid rgba(210,153,34,.2); border-radius: 8px;
+    cursor: pointer;
+  }
+  .nu-admin-row input { accent-color: #d29922; width: 16px; height: 16px; }
+  .nu-admin-label { font-size: .875rem; color: #c9d1d9; }
+  .nu-admin-label strong { color: #d29922; }
+
+  .nu-alert-error {
+    padding: .75rem 1rem; border-radius: 6px; font-size: .875rem;
+    background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.3); color: #f85149;
+    margin-bottom: 1.25rem;
+  }
+
+  .nu-divider { border: none; border-top: 1px solid #21262d; margin: .5rem 0; }
+
+  .nu-actions { display: flex; gap: .625rem; align-items: center; padding-top: .25rem; }
+  .nu-btn {
+    display: inline-flex; align-items: center; gap: .375rem;
+    padding: .5625rem 1.25rem; border-radius: 6px;
+    font-size: .875rem; font-weight: 600; cursor: pointer;
+    border: 1px solid transparent; text-decoration: none; transition: all .15s;
+    font-family: var(--font);
+  }
+  .nu-btn-primary { background: #238636; color: #fff; border-color: rgba(240,246,252,.1); }
+  .nu-btn-primary:hover { background: #2ea043; }
+  .nu-btn-ghost { background: transparent; color: #8b949e; border-color: #30363d; }
+  .nu-btn-ghost:hover { background: #21262d; color: #c9d1d9; }
+
+  @media (max-width: 600px) { .nu-form-row { grid-template-columns: 1fr; } }
+</style>
+
+<div class="admin-page">
+<div class="nu-page">
+
+  <a href="/admin/users" class="nu-back">&#8592; Back to Users</a>
+
+  <h1 class="nu-title">Create New User</h1>
+  <p class="nu-sub">The account will be created with a generated password shown to you once.</p>
+
+  {% if error %}
+  <div class="nu-alert-error">{{ error }}</div>
+  {% endif %}
+
+  <div class="nu-card">
+    <form method="post" action="/admin/users/new" class="nu-form">
+
+      <div class="nu-form-row">
+        <div class="nu-group">
+          <label for="name" class="nu-label">Full name *</label>
+          <input id="name" type="text" name="name" class="nu-input" required
+            value="{{ form.name or '' }}" placeholder="e.g. Jane Smith" autocomplete="off">
+        </div>
+        <div class="nu-group">
+          <label for="department" class="nu-label">Department <small>(optional)</small></label>
+          <input id="department" type="text" name="department" class="nu-input"
+            value="{{ form.department or '' }}" placeholder="e.g. Pharmacy, A&E">
+        </div>
+      </div>
+
+      <div class="nu-group">
+        <label for="email" class="nu-label">NHS email address *</label>
+        <input id="email" type="email" name="email" class="nu-input {% if error and 'email' in error|lower %}has-error{% endif %}"
+          required value="{{ form.email or '' }}" placeholder="name@nhs.net" autocomplete="off">
+      </div>
+
+      <div class="nu-group">
+        <label class="nu-label">Tester types <small>(optional — can be edited later)</small></label>
+        <div class="nu-check-grid">
+          {% for tt in tester_types %}
+          <label class="nu-check-item">
+            <input type="checkbox" name="tester_types" value="{{ tt.slug }}"
+              {% if selected_types is defined and tt.slug in selected_types %}checked{% endif %}>
+            {{ tt.label }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <hr class="nu-divider">
+
+      <label class="nu-admin-row">
+        <input type="checkbox" name="is_admin"
+          {% if form.is_admin %}checked{% endif %}>
+        <span class="nu-admin-label"><strong>Grant admin access</strong> — this user will be able to manage scripts, view all reports, and manage other users</span>
+      </label>
+
+      <div class="nu-actions">
+        <button type="submit" class="nu-btn nu-btn-primary">Create User &amp; Generate Password</button>
+        <a href="/admin/users" class="nu-btn nu-btn-ghost">Cancel</a>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+</div>
+{% endblock %}

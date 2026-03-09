@@ -65,11 +65,21 @@
   </div>
   {% endif %}
 
+  {% if new_user_info %}
+  <div class="au-reset-banner">
+    <p><strong>Account created for {{ new_user_info.name }} ({{ new_user_info.email }})</strong></p>
+    <p>Temporary password:</p>
+    <p class="au-pw">{{ new_user_info.password }}</p>
+    <p style="font-size:.78rem;margin-top:.5rem;color:#8b949e;">Share this with the user — it will not be shown again.</p>
+  </div>
+  {% endif %}
+
   <div class="au-header">
     <div>
       <h1 class="au-title">User Accounts</h1>
       <p class="au-subtitle">{{ users|length }} registered user{{ 's' if users|length != 1 }}</p>
     </div>
+    <a href="/admin/users/new" class="au-btn au-btn-primary">+ Create User</a>
   </div>
 
   <div class="au-card">
@@ -84,6 +94,7 @@
           <th>Email</th>
           <th>Department</th>
           <th>Tester Types</th>
+          <th>Role</th>
           <th>Status</th>
           <th>Joined</th>
           <th>Last Login</th>
@@ -105,6 +116,13 @@
             {% endfor %}
           </td>
           <td>
+            {% if user.is_admin %}
+            <span class="au-badge" style="background:rgba(210,153,34,.15);color:#d29922;border:1px solid rgba(210,153,34,.3);">Admin</span>
+            {% else %}
+            <span class="au-badge au-badge-inactive">User</span>
+            {% endif %}
+          </td>
+          <td>
             {% if user.is_active %}
             <span class="au-badge au-badge-active">Active</span>
             {% else %}
@@ -119,6 +137,13 @@
               <button class="au-btn au-btn-ghost" onclick="openAssign('{{ user.user_id }}', '{{ user.name }}', {{ user.tester_types or '[]' }})">
                 Edit Types
               </button>
+              <form method="post" action="/admin/users/{{ user.user_id }}/toggle-admin" style="display:inline;"
+                onsubmit="return confirm('{{ 'Remove admin rights from' if user.is_admin else 'Grant admin rights to' }} {{ user.name }}?')">
+                <button type="submit" class="au-btn {% if user.is_admin %}au-btn-danger{% else %}au-btn-ghost{% endif %}"
+                  style="{% if not user.is_admin %}color:#d29922;border-color:rgba(210,153,34,.4);{% endif %}">
+                  {{ 'Revoke Admin' if user.is_admin else 'Make Admin' }}
+                </button>
+              </form>
               <form method="post" action="/admin/users/{{ user.user_id }}/reset-password" style="display:inline;" onsubmit="return confirm('Reset password for {{ user.name }}?')">
                 <button type="submit" class="au-btn au-btn-primary">Reset PW</button>
               </form>

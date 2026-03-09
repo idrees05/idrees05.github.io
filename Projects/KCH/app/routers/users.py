@@ -52,6 +52,7 @@ async def user_login_submit(
         "user_id": user.user_id,
         "email": user.email,
         "name": user.name,
+        "is_admin": bool(user.is_admin),
     }
     token = sign_session(session_data)
     response = RedirectResponse("/user/dashboard", status_code=303)

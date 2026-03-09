@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from auth import generate_password, hash_password, require_any_session, require_session, sign_session
+from auth import generate_password, hash_password, require_any_session, sign_session
 from database import get_db
 from models import TesterType, TestResult, TestRun, TestScript, User
 from schemas import StartRunRequest
@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def index(request: Request, session: dict = Depends(require_any_session)):
+async def index(request: Request):
     return RedirectResponse("/start", status_code=302)
 
 

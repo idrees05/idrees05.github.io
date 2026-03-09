@@ -12,7 +12,7 @@
       <span class="nhs-logo">NHS</span>
     </div>
     <h1 class="login-heading">KCH Copilot<br>UAT Test Runner</h1>
-    <p class="login-sub">Enter your access code to begin testing</p>
+    <p class="login-sub">Admin sign in</p>
 
     {% if error %}
     <div class="alert alert-error" role="alert">
@@ -22,20 +22,23 @@
 
     <form method="post" action="/login" class="login-form">
       <div class="field-group">
-        <label for="access_code" class="field-label">Access code</label>
+        <label for="access_code" class="field-label">Admin code</label>
         <input
           type="password"
           id="access_code"
           name="access_code"
           class="field-input"
-          placeholder="Enter code"
+          placeholder="Enter admin code"
           autocomplete="current-password"
           autofocus
           required
         >
       </div>
-      <button type="submit" class="btn btn-primary btn-full">Sign in</button>
+      <button type="submit" class="btn btn-primary btn-full">Sign in as Admin</button>
     </form>
+    <p style="margin-top:1.25rem;font-size:.875rem;color:#6b7280;">
+      Testing participant? <a href="/start" style="color:var(--nhs-blue);">Start your test run here</a>
+    </p>
   </div>
 </body>
 </html>

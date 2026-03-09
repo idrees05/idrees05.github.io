@@ -8,7 +8,6 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
-ACCESS_CODE = os.getenv("ACCESS_CODE", "changeme")
 ADMIN_CODE = os.getenv("ADMIN_CODE", "adminchangeme")
 
 _signer = URLSafeTimedSerializer(SECRET_KEY)
